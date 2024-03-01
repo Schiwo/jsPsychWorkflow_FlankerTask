@@ -1,3 +1,13 @@
+// 
+function balancedSubset(levels) {
+  // for (var b = 0; b < factorProportions.length; i++) {
+  //   if (factorProportions[b] != null) {
+  //     balancedFactors.append(b)
+  //   }
+  // return list.map(index => balancedIDs[index])
+  return levels.filter((element, index) => factorProportions[index] !== null);
+}
+
 //function to check if the transition rules are correctly specified
 function ruleCheck(rules, factors) {
   nextCheck = false;
@@ -56,19 +66,9 @@ function ruleTranslator(factors, rules, list, index) {
       validCombos.push(availableValue);
     } else if (rules[i][0] == "next") {
       validCombos.push((list[index - 1][i] + rules[i][1]) % factors[i]);
-    } else if (rules[i][0] == "custom") {
-
     }
   }
   return validCombos;
-}
-
-
-// function used to increase values of the matrix
-function putter(matrix, trial) {
-matrix = math.subset(matrix, math.index.apply(null, trial),
-math.add(math.subset(matrix, math.index.apply(null, trial)), 1));
- return matrix;
 }
 
 // function to pick a random seed
@@ -81,9 +81,8 @@ function pickSeed(fa) {
 }
 
 //function to create 
-function start(factors, factorProportions){ 
+function start(factors, factorProportions, rSeed){ 
     //coding variables
-    randomSeed = pickSeed(factors);
     var srcpool = math.ones.apply(null, factors); //create base matrix
     for (var i = 0; i < factorProportions.length; i++) { //apply proportion rules
       if (factorProportions[i] == null) {
@@ -99,18 +98,20 @@ function start(factors, factorProportions){
   pool = math.clone(srcpool);
   l = Array.apply(null, Array(math.sum(pool))).map(function () {});
   pool = math.subset(pool,
-    math.index.apply(null, randomSeed),
-    math.subtract(math.subset(pool, math.index.apply(null, randomSeed)), 1));
-  l[0] = randomSeed;
-  return([pool, l]);
+    math.index.apply(null, rSeed),
+    math.subtract(math.subset(pool, math.index.apply(null, rSeed)), 1));
+  return(pool);
 }
 
 
 // function used to check whether there is a legit solution for the currently picked order
 function solveable(pool, prev, index){
+  if (pool == undefined){
+    return true
+  }
   var valid = ruleTranslator(factors, transitionRules, prev, index);
 
-  if (math.sum(math.subset(pool, math.index.apply(null, valid))) == 0) {
+  if (math.sum(math.subset(pool, math.index.apply(null, balancedSubset(valid)))) == 0) {
     return(false);
   } else {
       return(true);
@@ -119,7 +120,7 @@ function solveable(pool, prev, index){
 
 
 // function used to pick random variables from the matrix following the conditions
-function picker(pool, prev, index){
+function picker(pool, prev, index){ 
   var valid = ruleTranslator(factors, transitionRules, prev, index);
   var id = 0;
   while (true) {
@@ -127,21 +128,21 @@ function picker(pool, prev, index){
     if (id > 200) {
       throw "Couldnt find a solution. Consider using less restrictions.";
     }
-    var pickedCombo = [];
+    var pickedConditions = [];
     for (var i = 0; i < valid.length; i++) {
       if (Array.isArray(valid[i])) {
-        pickedCombo.push(valid[i][randint(valid[i].length)]);
+        pickedConditions.push(valid[i][randint(valid[i].length)]); FEHLER SIEHE CELINES EXPERIMENT
       } else {
-        pickedCombo.push(valid[i]);
+        pickedConditions.push(valid[i]);
       }
     }
 
-    if (math.subset(pool, math.index.apply(null, pickedCombo)) == 0) {
+    if (math.subset(pool, math.index.apply(null, pickedConditions)) == 0) {
       continue;
     } else {
-      pool = math.subset(pool, math.index.apply(null, pickedCombo),
-       math.subtract(math.subset(pool, math.index.apply(null, pickedCombo)), 1));
-      return(pickedCombo);
+      pool = math.subset(pool, math.index.apply(null, pickedConditions),
+       math.subtract(math.subset(pool, math.index.apply(null, pickedConditions)), 1));
+      return(pickedConditions);
     }
   }
 }
@@ -157,48 +158,46 @@ function counterbalance(counterBalancingParameter) {
   sets = counterBalancingParameter.sets;
 
   //check rules
-    ruleCheck(transitionRules, factors);
-    //check proportions
-    proportionCheck(factorProportions);
+  ruleCheck(transitionRules, factors);
+  //check proportions
+  proportionCheck(factorProportions);
 
+  randomSeed = pickSeed(factors);
+  balancedFactors = [];
+
+  
+  
+  balancedPool = start(balancedSubset(factors, balancedFactors), balancedSubset(factorProportions, balancedFactors), balancedSubset(randomSeed, balancedFactors));
+  trialList = startVars[randomSeed];
+
+  tryNr = 0;
+  restartNr = 0;
   j = 1;
-  restarts = 0;
-  breaks = 0;
-  startVars = start(factors, factorProportions);
-  pool = startVars[0];
-  l = startVars[1];
-
   //pick the order
   while (j < l.length) {
-    if (solveable(pool, l, j)) {
-      l[j] = picker(pool, l, j);
+    if (solveable(balancedPool, trialList, j)) {
+      trialList[j] = picker(balancedPool, trialList, j);
       j ++;
       continue;
     } else {
-      if (restarts > 25) {
+      if (tryNr > 25) {
+        console.log("Picking new seed.");
         randomSeed = pickSeed(factors);
-        console.log("new Seed!");
-        restarts = 0;
-        breaks ++;
-        if (breaks > 15) {
-          throw "broken balancing";
+        tryNr = 0;
+        restartNr ++;
+        if (restartNr > 15) {
+          throw "Can't find a solution for the specified factors.";
         }
       }
       startVars = start(randomSeed);
       pool = startVars[0];
-      l = startVars[1];
+      trialList = startVars[1];
       j = 1;
-      restarts ++;
+      tryNr ++;
       continue;
 
     }
   }
-
-  // var poolcheck = math.zeros.apply(null, factors);
-  // for (var i = 0; i < l.length; i++) {
-  //   poolcheck = putter(poolcheck, l[i]);
-  // }
-  // console.log(l);
   return l;
 }
 

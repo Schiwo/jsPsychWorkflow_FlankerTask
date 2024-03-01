@@ -39,7 +39,6 @@ transitionRules: Set the rules for the trial to trial transitions of each factor
     ["identical", x, y]: The factor level must be identical as the to factor level of factor y, but x trial before the current trial.
     ["different", x, y]: The factor level cannot be different than the factor level of factor y, but x trial before the current trial.
     ["next", x]: The factor level of the same factor in the last trial will be increased by x in a circular way (e.g. factor level 0 becomes factor level 1; after the last factor level x, it restarts with factor level 0).
-    ["custom", function()]: Will be implemented in the future.
 
 sets: amount of trials with identical conditions per block (e.g. if sets = 3, each factor level combination will occur 3 times per block). 
 
