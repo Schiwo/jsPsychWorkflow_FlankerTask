@@ -1,12 +1,12 @@
 // 
-function balancedSubset(levels) {
-  // for (var b = 0; b < factorProportions.length; i++) {
-  //   if (factorProportions[b] != null) {
-  //     balancedFactors.append(b)
-  //   }
-  // return list.map(index => balancedIDs[index])
-  return levels.filter((element, index) => factorProportions[index] !== null);
-}
+// function balancedSubset(levels) {
+//   // for (var b = 0; b < factorProportions.length; i++) {
+//   //   if (factorProportions[b] != null) {
+//   //     balancedFactors.append(b)
+//   //   }
+//   // return list.map(index => balancedIDs[index])
+//   return levels.filter((element, index) => factorProportions[index] !== null);
+// }
 
 //function to check if the transition rules are correctly specified
 function ruleCheck(rules, factors) {
@@ -72,10 +72,10 @@ function ruleTranslator(factors, rules, list, index) {
 }
 
 // function to pick a random seed
-function pickSeed(fa) {
+function pickSeed(prop) {
   var seeds = [];
-  for (var i = 0; i < fa.length; i++) {
-    seeds.push(randint(fa[i]));
+  for (var i = 0; i < prop.length; i++) {
+    seeds.push(proportionalRandint(prop[i]));
   }
   return seeds;
 }
@@ -120,7 +120,7 @@ function solveable(pool, prev, index){
 
 
 // function used to pick random variables from the matrix following the conditions
-function picker(pool, prev, index){ 
+function picker(pool, prev, index, proportions){ 
   var valid = ruleTranslator(factors, transitionRules, prev, index);
   var id = 0;
   while (true) {
@@ -131,7 +131,7 @@ function picker(pool, prev, index){
     var pickedConditions = [];
     for (var i = 0; i < valid.length; i++) {
       if (Array.isArray(valid[i])) {
-        pickedConditions.push(valid[i][randint(valid[i].length)]); FEHLER SIEHE CELINES EXPERIMENT
+        pickedConditions.push(valid[i][proportionalRandint(getArrayElementsById(proportions[i], valid[i]))]);
       } else {
         pickedConditions.push(valid[i]);
       }
@@ -154,6 +154,12 @@ function picker(pool, prev, index){
 function counterbalance(counterBalancingParameter) {
   factors = counterBalancingParameter.factors;
   factorProportions = counterBalancingParameter.factorProportions;
+  for (var i = 0; i < factorProportions.length; i++) {
+    if (factorProportions[i] == "null"){
+      factorProportions[i] = Array(factors[i].fill(1))
+    }
+  }
+
   transitionRules = counterBalancingParameter.transitionRules;
   sets = counterBalancingParameter.sets;
 
@@ -162,12 +168,12 @@ function counterbalance(counterBalancingParameter) {
   //check proportions
   proportionCheck(factorProportions);
 
-  randomSeed = pickSeed(factors);
-  balancedFactors = [];
+  randomSeed = pickSeed(factorProportions);
 
-  
-  
-  balancedPool = start(balancedSubset(factors, balancedFactors), balancedSubset(factorProportions, balancedFactors), balancedSubset(randomSeed, balancedFactors));
+  // balancedFactors = [];  
+  // balancedPool = start(balancedSubset(factors, balancedFactors), balancedSubset(factorProportions, balancedFactors), balancedSubset(randomSeed, balancedFactors));
+  balancedPool = start(factors, factorProportions, randomSeed)
+
   trialList = startVars[randomSeed];
 
   tryNr = 0;
@@ -176,7 +182,7 @@ function counterbalance(counterBalancingParameter) {
   //pick the order
   while (j < l.length) {
     if (solveable(balancedPool, trialList, j)) {
-      trialList[j] = picker(balancedPool, trialList, j);
+      trialList[j] = picker(balancedPool, trialList, j, factorProportions);
       j ++;
       continue;
     } else {

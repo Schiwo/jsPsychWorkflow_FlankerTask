@@ -17,6 +17,20 @@ max = Math.floor(max) - 1;
 return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// function used to select an index from an array of proportions such that the probability of selecting each index is proportional to the value at that index
+function proportionalRandint(proportions) {
+  let sum = proportions.reduce((a, b) => a + b, 0)
+  let pick = randint(sum)
+
+  let steps = 0
+  for (i = 0; i < proportions.length; i++) {
+      steps += proportions[i];
+      if (pick < steps){
+        return i
+      }
+  }
+}
+
 
 function instrLoader(folder, instrLength){
   var imgArray = [];
