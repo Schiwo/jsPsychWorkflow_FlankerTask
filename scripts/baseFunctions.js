@@ -81,3 +81,32 @@ async function loadScripts(directory, files, extension = ".js", callback) {
   }
 }
 
+function matrixPrint(matrix, m, n) {
+  var output = '';
+  // Split the single array into m rows
+  for (var i = 0; i < m; i++) {
+    output += matrix.slice(i * n, (i+1) * n).join(' ') + '\n';
+  }
+  out.innerText += output + '\n';
+}
+
+function printMatrix(matrix) {
+  let formattedString = '';
+  let consecutiveBrackets = 0;
+  let arrayString = JSON.stringify(matrix)
+
+  for (let i = 0; i < arrayString.length; i++) {
+      formattedString += arrayString[i];
+
+      if (arrayString[i] === ']') {
+          consecutiveBrackets++;
+      } else if (arrayString[i] === ',' && consecutiveBrackets > 0) {
+          formattedString += '\n'.repeat(consecutiveBrackets);
+          consecutiveBrackets = 0;
+      } else {
+          consecutiveBrackets = 0;
+      }
+  }
+
+  console.log(formattedString);
+}

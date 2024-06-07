@@ -8,6 +8,17 @@
 //   return levels.filter((element, index) => factorProportions[index] !== null);
 // }
 
+function nullToProportion(prprtn, fctr) {
+  for (var i = 0; i < prprtn.length; i++) {
+    if (prprtn[i] == null){
+      prprtn[i] = Array(fctr[i]).fill(1);
+    } else {
+      prprtn[i] = prprtn[i];
+    }
+  }
+  return prprtn
+} 
+
 //function to check if the transition rules are correctly specified
 function ruleCheck(rules, factors) {
   nextCheck = false;
@@ -81,26 +92,22 @@ function pickSeed(prop) {
 }
 
 //function to create 
-function start(factors, factorProportions, rSeed){ 
+function start(factors, factorProportions){ 
     //coding variables
-    var srcpool = math.ones.apply(null, factors); //create base matrix
+    var basePool = math.ones.apply(null, factors); //create base matrix
     for (var i = 0; i < factorProportions.length; i++) { //apply proportion rules
-      if (factorProportions[i] == null) {
-        continue;
-      } else{
-        srcpool.forEach(function (value, index, matrix) {
-            srcpool = math.subset(srcpool, math.index.apply(null, index),
-            math.multiply(math.subset(srcpool, math.index.apply(null, index)), factorProportions[i][index[i]]));
+      // if (factorProportions[i] == null) {
+        // continue;
+      // } else{
+        basePool.forEach(function (value, index, matrix) {
+          basePool = math.subset(basePool, math.index.apply(null, index),
+            math.multiply(math.subset(basePool, math.index.apply(null, index)), factorProportions[i][index[i]]));
       });
-    }
+    // }
   }
-  srcpool = math.multiply(srcpool , sets); //apply multiple sets of individual factor combinations
-  pool = math.clone(srcpool);
-  l = Array.apply(null, Array(math.sum(pool))).map(function () {});
-  pool = math.subset(pool,
-    math.index.apply(null, rSeed),
-    math.subtract(math.subset(pool, math.index.apply(null, rSeed)), 1));
-  return(pool);
+  basePool = math.multiply(basePool, sets); //apply multiple sets of individual factor combinations
+  
+  return(basePool);
 }
 
 
@@ -118,6 +125,10 @@ function solveable(pool, prev, index){
   }
 }
 
+function poolSubtraction(matrix, vector){
+  return   math.subset(matrix, math.index.apply(null, vector),
+              math.subtract(math.subset(matrix, math.index.apply(null, vector)), 1));
+}
 
 // function used to pick random variables from the matrix following the conditions
 function picker(pool, prev, index, proportions){ 
@@ -140,8 +151,6 @@ function picker(pool, prev, index, proportions){
     if (math.subset(pool, math.index.apply(null, pickedConditions)) == 0) {
       continue;
     } else {
-      pool = math.subset(pool, math.index.apply(null, pickedConditions),
-       math.subtract(math.subset(pool, math.index.apply(null, pickedConditions)), 1));
       return(pickedConditions);
     }
   }
@@ -153,13 +162,7 @@ function picker(pool, prev, index, proportions){
 // function used for list generation, sets: amount of counterbalanced variable sets per block
 function counterbalance(counterBalancingParameter) {
   factors = counterBalancingParameter.factors;
-  factorProportions = counterBalancingParameter.factorProportions;
-  for (var i = 0; i < factorProportions.length; i++) {
-    if (factorProportions[i] == "null"){
-      factorProportions[i] = Array(factors[i].fill(1))
-    }
-  }
-
+  factorProportions = nullToProportion(counterBalancingParameter.factorProportions, factors)
   transitionRules = counterBalancingParameter.transitionRules;
   sets = counterBalancingParameter.sets;
 
@@ -168,43 +171,51 @@ function counterbalance(counterBalancingParameter) {
   //check proportions
   proportionCheck(factorProportions);
 
-  randomSeed = pickSeed(factorProportions);
+  randomSeed = pickSeed(factorProportions, factors);
 
   // balancedFactors = [];  
   // balancedPool = start(balancedSubset(factors, balancedFactors), balancedSubset(factorProportions, balancedFactors), balancedSubset(randomSeed, balancedFactors));
-  balancedPool = start(factors, factorProportions, randomSeed)
+  basePool = start(factors, factorProportions, randomSeed)
 
-  trialList = startVars[randomSeed];
+  remainingPool = math.clone(basePool);
 
+  trialList = [randomSeed]
+  remainingPool = poolSubtraction(remainingPool, randomSeed)
+  
   tryNr = 0;
   restartNr = 0;
   j = 1;
+  trialcount = math.sum(basePool);
+
   //pick the order
-  while (j < l.length) {
-    if (solveable(balancedPool, trialList, j)) {
-      trialList[j] = picker(balancedPool, trialList, j, factorProportions);
+  while (j <= trialcount) {
+    if (solveable(remainingPool, trialList, j)) {
+      trialList[j] = picker(remainingPool, trialList, j, factorProportions);
+      remainingPool = poolSubtraction(remainingPool, trialList[j])
       j ++;
       continue;
     } else {
       if (tryNr > 25) {
         console.log("Picking new seed.");
-        randomSeed = pickSeed(factors);
+        randomSeed = pickSeed(factorProportions, factors);
+
         tryNr = 0;
         restartNr ++;
         if (restartNr > 15) {
           throw "Can't find a solution for the specified factors.";
         }
       }
-      startVars = start(randomSeed);
-      pool = startVars[0];
-      trialList = startVars[1];
+      remainingPool = basePool;
+      trialList = [randomSeed]
+      remainingPool = poolSubtraction(remainingPool, randomSeed)
+    
       j = 1;
       tryNr ++;
       continue;
 
     }
   }
-  return l;
+  return trialList;
 }
 
 
