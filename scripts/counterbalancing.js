@@ -82,6 +82,36 @@ function ruleTranslator(factors, rules, list, index) {
   return validCombos;
 }
 
+// function to extract array elements by indices
+function getArrayElementsById(array, indices) {
+  return indices.map(id => array[id]);
+}
+
+// debugging configuration
+var DEBUG_MODE = true;
+
+// debug function to log trial status
+function debugLog(message) {
+  if (DEBUG_MODE) {
+    console.log("[DEBUG] " + message);
+  }
+}
+
+// debug function to display pool state (simplified)
+function debugPoolState(pool, label) {
+  if (DEBUG_MODE) {
+    var sum = math.sum(pool);
+    console.log("[POOL] " + label + " - Remaining trials: " + sum);
+  }
+}
+
+// debug function to display picked conditions
+function debugPickedConditions(trialNum, conditions) {
+  if (DEBUG_MODE) {
+    console.log("[TRIAL " + trialNum + "] Picked conditions: [" + conditions.join(", ") + "]");
+  }
+}
+
 // function to pick a random seed
 function pickSeed(prop) {
   var seeds = [];
@@ -118,8 +148,8 @@ function solveable(pool, prev, index){
   }
   var valid = ruleTranslator(factors, transitionRules, prev, index);
 
-  if (math.sum(math.subset(pool, math.index.apply(null, balancedSubset(valid)))) == 0) {
-    return(false);
+if (math.sum(math.subset(pool, math.index.apply(null, valid))) == 0) {
+      return(false);
   } else {
       return(true);
   }
@@ -181,22 +211,30 @@ function counterbalance(counterBalancingParameter) {
 
   trialList = [randomSeed]
   remainingPool = poolSubtraction(remainingPool, randomSeed)
-  
   tryNr = 0;
   restartNr = 0;
   j = 1;
   trialcount = math.sum(basePool);
 
+  debugLog("Starting counterbalance with " + trialcount + " total trials");
+  debugPickedConditions(0, randomSeed);
+  debugPoolState(remainingPool, "Initial");
+  
+
+
   //pick the order
   while (j <= trialcount) {
     if (solveable(remainingPool, trialList, j)) {
       trialList[j] = picker(remainingPool, trialList, j, factorProportions);
+      debugPickedConditions(j, trialList[j]);
       remainingPool = poolSubtraction(remainingPool, trialList[j])
+      debugPoolState(remainingPool, "After trial " + j);
       j ++;
       continue;
     } else {
+      debugLog("No solveable combination found for trial " + j + " (Try #" + (tryNr + 1) + ")");
       if (tryNr > 25) {
-        console.log("Picking new seed.");
+        debugLog("Picking new seed (Restart #" + (restartNr + 1) + ")");
         randomSeed = pickSeed(factorProportions, factors);
 
         tryNr = 0;
@@ -215,6 +253,8 @@ function counterbalance(counterBalancingParameter) {
 
     }
   }
+  
+  debugLog("Counterbalance completed successfully!");
   return trialList;
 }
 

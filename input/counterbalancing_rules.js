@@ -3,7 +3,7 @@ function createCounterBalancingParameter() {
         factors: [2,2,2,2], // [current congruency, previous congruency, stimulus set, stimulus option]
         factorProportions: [null, null, null, null],
         transitionRules: [null, ["identical", 1, 0], ["next", 1], null],
-        sets: 5,
+        sets: 1,
         preprendTrials: 1,
         prependRules: [["identical", 1, 1], null, ["next", 1], null],
         appendTrials: 0,
