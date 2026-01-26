@@ -16,7 +16,19 @@ if (typeof require !== 'undefined' && typeof global !== 'undefined') {
   }
 }
 
-// Get math library - works in both browser and Node.js
+// Global variables used during counterbalancing
+// These are set by the counterbalance() function
+var factors;
+var factorProportions;
+var transitionRules;
+var sets;
+var DEBUG_MODE;
+
+/**
+ * Get math library instance - works in both browser and Node.js environments
+ * @returns {Object} math.js library instance
+ * @throws {Error} If math.js library is not found
+ */
 function getMath() {
   if (typeof global !== 'undefined' && global.math) {
     return global.math;
@@ -25,33 +37,40 @@ function getMath() {
   }
   throw new Error('math.js library not found');
 }
-// function balancedSubset(levels) {
-//   // for (var b = 0; b < factorProportions.length; i++) {
-//   //   if (factorProportions[b] != null) {
-//   //     balancedFactors.append(b)
-//   //   }
-//   // return list.map(index => balancedIDs[index])
-//   return levels.filter((element, index) => factorProportions[index] !== null);
-// }
 
+// Constants for counterbalancing algorithm
+const MAX_PICKER_ATTEMPTS = 200;  // Maximum attempts to pick a valid combination
+const MAX_RETRY_ATTEMPTS = 25;    // Maximum retry attempts before picking new seed
+const MAX_RESTART_ATTEMPTS = 15;  // Maximum restart attempts with new seed
+
+/**
+ * Convert null values in proportions array to default arrays
+ * @param {Array} prprtn - Proportions array that may contain null values
+ * @param {Array} fctr - Factors array containing number of levels for each factor
+ * @returns {Array} Modified proportions array with null values replaced
+ */
 function nullToProportion(prprtn, fctr) {
   for (var i = 0; i < prprtn.length; i++) {
-    if (prprtn[i] == null){
+    if (prprtn[i] == null) {
       prprtn[i] = Array(fctr[i]).fill(1);
-    } else {
-      prprtn[i] = prprtn[i];
     }
   }
-  return prprtn
+  return prprtn;
 } 
 
 //function to check if the transition rules are correctly specified
+/**
+ * Validate transition rules specification
+ * @param {Array} rules - Array of transition rules (one per factor)
+ * @param {Array} factors - Array containing number of levels for each factor
+ * @throws {Error} If rules are invalid or incorrect
+ */
 function ruleCheck(rules, factors) {
-  nextCheck = false;
+  let nextCheck = false;
   if (!Array.isArray(rules)) {
-    throw "Rules must be an array with n elements (n = number of factors)."}
-  else if (rules.length != factors.length) {
-    throw "Rules must be an array with n elements (n = number of factors)."
+    throw "Rules must be an array with n elements (n = number of factors).";
+  } else if (rules.length != factors.length) {
+    throw "Rules must be an array with n elements (n = number of factors).";
   }
 
   for (var i = 0; i < rules.length; i++) {
@@ -60,7 +79,7 @@ function ruleCheck(rules, factors) {
     } else {
       if (rules[i][0] == "identical") {
         if (rules[i][1] < 1) {
-          throw "rule error; x must be larger than 0!"
+          throw "rule error; x must be larger than 0!";
         }
       } else if (rules[i][0] == "next") {
         if (nextCheck == true) {
@@ -74,6 +93,11 @@ function ruleCheck(rules, factors) {
 }
 
 //function to check if proportions are correctly specified 
+/**
+ * Validate proportions specification
+ * @param {Array} proportions - Array of proportions (one per factor)
+ * @throws {Error} If any proportion value is less than 1
+ */
 function proportionCheck(proportions) {
   for (var i = 0; i < proportions.length; i++) {
     if (proportions[i] == null) {
@@ -89,7 +113,15 @@ function proportionCheck(proportions) {
 } 
 
 
-//function to pick valid factor combinations for the next trial depending on the specified transition rurles 
+//function to pick valid factor combinations for the next trial depending on the specified transition rules 
+/**
+ * Translate transition rules to valid factor combinations for the next trial
+ * @param {Array} factors - Array containing number of levels for each factor
+ * @param {Array} rules - Array of transition rules
+ * @param {Array} list - List of previously picked trial combinations
+ * @param {number} index - Current trial index
+ * @returns {Array} Valid combinations for each factor at current trial
+ */
 function ruleTranslator(factors, rules, list, index) {
   validCombos = [];
   for (var i = 0; i < factors.length; i++) {
@@ -108,20 +140,32 @@ function ruleTranslator(factors, rules, list, index) {
   return validCombos;
 }
 
-// function to extract array elements by indices
+/**
+ * Extract array elements by indices
+ * @param {Array} array - Source array
+ * @param {Array} indices - Indices to extract
+ * @returns {Array} Elements at specified indices
+ */
 function getArrayElementsById(array, indices) {
   return indices.map(id => array[id]);
 }
 
 
-// debug function to log trial status
+/**
+ * Log debug message if DEBUG_MODE is enabled
+ * @param {string} message - Message to log
+ */
 function debugLog(message) {
   if (DEBUG_MODE) {
     console.log("[DEBUG] " + message);
   }
 }
 
-// debug function to display pool state (simplified)
+/**
+ * Log pool state summary if DEBUG_MODE is enabled
+ * @param {Object} pool - Pool matrix to check
+ * @param {string} label - Label for this state
+ */
 function debugPoolState(pool, label) {
   if (DEBUG_MODE) {
     var sum = getMath().sum(pool);
@@ -129,7 +173,11 @@ function debugPoolState(pool, label) {
   }
 }
 
-// function to format pool state with indices and values
+/**
+ * Format pool state as readable string showing all indices and values
+ * @param {Object} pool - Pool matrix to format
+ * @returns {string} Formatted pool state
+ */
 function formatPoolState(pool) {
   var formatted = "";
   var size = pool.size();
@@ -149,14 +197,22 @@ function formatPoolState(pool) {
   return formatted;
 }
 
-// debug function to display picked conditions
+/**
+ * Log picked conditions for current trial if DEBUG_MODE is enabled
+ * @param {number} trialNum - Trial number
+ * @param {Array} conditions - Picked conditions for this trial
+ */
 function debugPickedConditions(trialNum, conditions) {
   if (DEBUG_MODE) {
     console.log("[TRIAL " + trialNum + "] Picked conditions: [" + conditions.join(", ") + "]");
   }
 }
 
-// function to pick a random seed
+/**
+ * Pick random seed values based on proportions
+ * @param {Array} prop - Proportions array for each factor
+ * @returns {Array} Random seed combination
+ */
 function pickSeed(prop) {
   var seeds = [];
   for (var i = 0; i < prop.length; i++) {
@@ -165,57 +221,74 @@ function pickSeed(prop) {
   return seeds;
 }
 
-//function to create 
-function start(factors, factorProportions){ 
-    //coding variables
-    const math = getMath();
-    var basePool = math.ones.apply(null, factors); //create base matrix
-    for (var i = 0; i < factorProportions.length; i++) { //apply proportion rules
-      // if (factorProportions[i] == null) {
-        // continue;
-      // } else{
-        basePool.forEach(function (value, index, matrix) {
-          basePool = math.subset(basePool, math.index.apply(null, index),
-            math.multiply(math.subset(basePool, math.index.apply(null, index)), factorProportions[i][index[i]]));
-      });
-    // }
+//function to create base pool for counterbalancing
+/**
+ * Create initial pool with factor proportions applied
+ * @param {Array} factors - Array containing number of levels for each factor
+ * @param {Array} factorProportions - Array of proportions for each factor
+ * @returns {Object} Base pool matrix with proportions applied
+ */
+function start(factors, factorProportions) {
+  //coding variables
+  const math = getMath();
+  var basePool = math.ones.apply(null, factors); //create base matrix
+  for (var i = 0; i < factorProportions.length; i++) {
+    basePool.forEach(function (value, index, matrix) {
+      basePool = math.subset(basePool, math.index.apply(null, index),
+        math.multiply(math.subset(basePool, math.index.apply(null, index)), factorProportions[i][index[i]]));
+    });
   }
-  basePool = math.multiply(basePool, sets); //apply multiple sets of individual factor combinations
+  basePool = math.multiply(basePool, sets);
+  return basePool;
+}
+
+
+/**
+ * Check if a solveable solution exists for the current trial given constraints
+ * @param {Object} pool - Remaining pool matrix
+ * @param {Array} prev - Previously selected trial combinations
+ * @param {number} index - Current trial index
+ * @returns {boolean} True if a valid combination exists, false otherwise
+ */
+function solveable(pool, prev, index) {
+  if (pool == undefined) {
+    return true;
+  }
+  const math = getMath();
+  var valid = ruleTranslator(factors, transitionRules, prev, index);
+  return math.sum(math.subset(pool, math.index.apply(null, valid))) > 0;
+}
+
+/**
+ * Subtract one from a specific condition combination in the pool
+ * @param {Object} matrix - Pool matrix
+ * @param {Array} vector - Indices of condition combination to subtract
+ * @returns {Object} Updated pool matrix
+ */
+function poolSubtraction(matrix, vector) {
+  const math = getMath();
+  return math.subset(matrix, math.index.apply(null, vector),
+    math.subtract(math.subset(matrix, math.index.apply(null, vector)), 1));
+}
+
+/**
+ * Pick a random valid combination from the pool following transition rules
+ * @param {Object} pool - Remaining pool matrix
+ * @param {Array} prev - Previously selected trial combinations
+ * @param {number} index - Current trial index
+ * @param {Array} proportions - Proportions array for weighted selection
+ * @returns {Array} Randomly selected valid condition combination
+ * @throws {Error} If no solution can be found after max attempts
+ */
+function picker(pool, prev, index, proportions) {
+  const math = getMath();
+  var valid = ruleTranslator(factors, transitionRules, prev, index);
+  var attemptCount = 0;
   
-  return(basePool);
-}
-
-
-// function used to check whether there is a legit solution for the currently picked order
-function solveable(pool, prev, index){
-  if (pool == undefined){
-    return true
-  }
-  const math = getMath();
-  var valid = ruleTranslator(factors, transitionRules, prev, index);
-
-if (math.sum(math.subset(pool, math.index.apply(null, valid))) == 0) {
-      return(false);
-  } else {
-      return(true);
-  }
-}
-
-function poolSubtraction(matrix, vector){
-  const math = getMath();
-  return   math.subset(matrix, math.index.apply(null, vector),
-              math.subtract(math.subset(matrix, math.index.apply(null, vector)), 1));
-}
-
-// function used to pick random variables from the matrix following the conditions
-function picker(pool, prev, index, proportions){ 
-  const math = getMath();
-  var valid = ruleTranslator(factors, transitionRules, prev, index);
-  var id = 0;
   while (true) {
-    id ++;
-    if (id > 200) {
-      throw "Couldnt find a solution. Consider using less restrictions.";
+    attemptCount++;
+    if (attemptCount > MAX_PICKER_ATTEMPTS) {
+      throw "Couldn't find a solution. Consider using less restrictions.";
     }
     var pickedConditions = [];
     for (var i = 0; i < valid.length; i++) {
@@ -226,10 +299,8 @@ function picker(pool, prev, index, proportions){
       }
     }
 
-    if (math.subset(pool, math.index.apply(null, pickedConditions)) == 0) {
-      continue;
-    } else {
-      return(pickedConditions);
+    if (math.subset(pool, math.index.apply(null, pickedConditions)) > 0) {
+      return pickedConditions;
     }
   }
 }
@@ -237,16 +308,29 @@ function picker(pool, prev, index, proportions){
 
 
 
-// function used for list generation, sets: amount of counterbalanced variable sets per block
+/**
+ * Generate a counterbalanced trial sequence based on specified parameters
+ * @param {Object} counterBalancingParameter - Configuration object containing:
+ *   - factors: Array of factor levels
+ *   - factorProportions: Array of proportions (or null) for each factor
+ *   - transitionRules: Array of transition rules between trials
+ *   - sets: Number of counterbalanced sets
+ *   - DEBUG_MODE: Optional boolean to enable debug logging
+ * @returns {Array} Counterbalanced list of trial combinations
+ * @throws {Error} If no valid solution exists for given constraints
+ */
 function counterbalance(counterBalancingParameter) {
   const math = getMath();
+  
+  // Set global variables from parameters
   factors = counterBalancingParameter.factors;
-  factorProportions = nullToProportion(counterBalancingParameter.factorProportions, factors)
+  factorProportions = nullToProportion(counterBalancingParameter.factorProportions, factors);
   transitionRules = counterBalancingParameter.transitionRules;
   sets = counterBalancingParameter.sets;
-
-  // debugging configuration
   DEBUG_MODE = counterBalancingParameter.DEBUG_MODE || false;
+
+  // Local variables for this function
+  var randomSeed, basePool, remainingPool, trialList, tryNr, restartNr, j, trialcount;
 
   //check rules
   ruleCheck(transitionRules, factors);
@@ -254,15 +338,12 @@ function counterbalance(counterBalancingParameter) {
   proportionCheck(factorProportions);
 
   randomSeed = pickSeed(factorProportions, factors);
-
-  // balancedFactors = [];  
-  // balancedPool = start(balancedSubset(factors, balancedFactors), balancedSubset(factorProportions, balancedFactors), balancedSubset(randomSeed, balancedFactors));
-  basePool = start(factors, factorProportions, randomSeed)
+  basePool = start(factors, factorProportions);
 
   remainingPool = math.clone(basePool);
 
-  trialList = [randomSeed]
-  remainingPool = poolSubtraction(remainingPool, randomSeed)
+  trialList = [randomSeed];
+  remainingPool = poolSubtraction(remainingPool, randomSeed);
   tryNr = 0;
   restartNr = 0;
   j = 1;
@@ -271,28 +352,24 @@ function counterbalance(counterBalancingParameter) {
   debugLog("Starting counterbalance with " + trialcount + " total trials");
   debugPickedConditions(0, randomSeed);
   debugPoolState(remainingPool, "Initial");
-  
 
-
-  //pick the order
+  // Pick the trial order
   while (j < trialcount) {
     debugLog("Loop check: j=" + j + ", trialcount=" + trialcount + ", pool_sum=" + math.sum(remainingPool));
     if (solveable(remainingPool, trialList, j)) {
       trialList[j] = picker(remainingPool, trialList, j, factorProportions);
       debugPickedConditions(j, trialList[j]);
-      remainingPool = poolSubtraction(remainingPool, trialList[j])
+      remainingPool = poolSubtraction(remainingPool, trialList[j]);
       debugPoolState(remainingPool, "After trial " + j);
-      j ++;
-      continue;
+      j++;
     } else {
       debugLog("No solveable combination found for trial " + j + " (Try #" + (tryNr + 1) + ")");
-      if (tryNr > 25) {
+      if (tryNr > MAX_RETRY_ATTEMPTS) {
         debugLog("Picking new seed (Restart #" + (restartNr + 1) + ")");
         randomSeed = pickSeed(factorProportions, factors);
-
         tryNr = 0;
-        restartNr ++;
-        if (restartNr > 15) {
+        restartNr++;
+        if (restartNr > MAX_RESTART_ATTEMPTS) {
           var remainingCount = math.sum(remainingPool);
           var valid = ruleTranslator(factors, transitionRules, trialList, j);
           var availableCount = math.sum(math.subset(remainingPool, math.index.apply(null, valid)));
@@ -300,73 +377,105 @@ function counterbalance(counterBalancingParameter) {
         }
       }
       remainingPool = basePool;
-      trialList = [randomSeed]
-      remainingPool = poolSubtraction(remainingPool, randomSeed)
-    
+      trialList = [randomSeed];
+      remainingPool = poolSubtraction(remainingPool, randomSeed);
       j = 1;
-      tryNr ++;
-      continue;
-
+      tryNr++;
     }
   }
-  
+
   debugLog("Counterbalance completed successfully!");
   return trialList;
 }
 
 
 
+/**
+ * Prepend trials to the beginning of a trial sequence based on rules
+ * @param {Array} rawList - Original trial list
+ * @param {Object} counterBalancingParameter - Configuration object containing:
+ *   - preprendTrials: Number of trials to prepend
+ *   - prependRules: Transition rules for prepended trials
+ *   - factors: Array of factor levels
+ * @returns {Array} Trial list with prepended trials
+ */
 function prepend(rawList, counterBalancingParameter) {
-  n = counterBalancingParameter.preprendTrials;
-  rules = counterBalancingParameter.prependRules;
-  factors = counterBalancingParameter.factors
-  if (n == 0){return rawList}
-  ruleCheck(rules, factors)
-  revList = deepCopy(rawList).reverse()
-  for (let index = 0; index < n; index++) {
-    valid = ruleTranslator(factors, rules, revList, revList.length);
-
-    var pickedCombo = [];
-    for (var i = 0; i < valid.length; i++) {
-      if (Array.isArray(valid[i])) {
-        pickedCombo.push(valid[i][randint(valid[i].length)]);
-      } else {
-        pickedCombo.push(valid[i]);
-      }
-    }
-    revList.push(pickedCombo)
-  }
-
-  return revList.reverse()
-}
+  var n = counterBalancingParameter.preprendTrials;
+  var rules = counterBalancingParameter.prependRules;
+  var factors = counterBalancingParameter.factors;
   
-function append(rawList, counterBalancingParameter) {
-  n = counterBalancingParameter.appendTrials;
-  rules = counterBalancingParameter.appendRules;
-  factors = counterBalancingParameter.factors
-  if (n == 0){return rawList}
-  ruleCheck(rules, factors)
-  list = deepCopy(rawList)
+  if (n == 0) {
+    return rawList;
+  }
+  
+  ruleCheck(rules, factors);
+  var revList = deepCopy(rawList).reverse();
+  
   for (let index = 0; index < n; index++) {
-    valid = ruleTranslator(factors, rules, list, list.length);
-
-    var pickedCombo = [];
-    for (var i = 0; i < valid.length; i++) {
-      if (Array.isArray(valid[i])) {
-        pickedCombo.push(valid[i][randint(valid[i].length)]);
-      } else {
-        pickedCombo.push(valid[i]);
-      }
-    }
-    list.push(pickedCombo)
+    var valid = ruleTranslator(factors, rules, revList, revList.length);
+    var pickedCombo = pickRandomCombo(valid);
+    revList.push(pickedCombo);
   }
 
-  return list
+  return revList.reverse();
 }
 
 
+/**
+ * Helper function to pick a random combination based on rules
+ * Used internally by prepend and append functions
+ * @param {Array} validFactors - Valid factor combinations for current position
+ * @returns {Array} Randomly selected combination
+ * @private
+ */
+function pickRandomCombo(validFactors) {
+  var pickedCombo = [];
+  for (var i = 0; i < validFactors.length; i++) {
+    if (Array.isArray(validFactors[i])) {
+      pickedCombo.push(validFactors[i][randint(validFactors[i].length)]);
+    } else {
+      pickedCombo.push(validFactors[i]);
+    }
+  }
+  return pickedCombo;
+}
+/**
+ * Append trials to the end of a trial sequence based on rules
+ * @param {Array} rawList - Original trial list
+ * @param {Object} counterBalancingParameter - Configuration object containing:
+ *   - appendTrials: Number of trials to append
+ *   - appendRules: Transition rules for appended trials
+ *   - factors: Array of factor levels
+ * @returns {Array} Trial list with appended trials
+ */
+function append(rawList, counterBalancingParameter) {
+  var n = counterBalancingParameter.appendTrials;
+  var rules = counterBalancingParameter.appendRules;
+  var factors = counterBalancingParameter.factors;
+  
+  if (n == 0) {
+    return rawList;
+  }
+  
+  ruleCheck(rules, factors);
+  var list = deepCopy(rawList);
+  
+  for (let index = 0; index < n; index++) {
+    var valid = ruleTranslator(factors, rules, list, list.length);
+    var pickedCombo = pickRandomCombo(valid);
+    list.push(pickedCombo);
+  }
+
+  return list;
+}
+
+/**
+ * Create a complete trial sequence with prepended, main, and appended trials
+ * @param {Object} counterBalancingParameter - Configuration object for counterbalancing
+ * @returns {Array} Complete trial sequence with all phases
+ */
 function createTrialSequences(counterBalancingParameter) {
-  trialList = counterbalance(counterBalancingParameter);
+  var trialList = counterbalance(counterBalancingParameter);
   trialList = prepend(trialList, counterBalancingParameter);
   trialList = append(trialList, counterBalancingParameter);
   return trialList;
@@ -375,23 +484,30 @@ function createTrialSequences(counterBalancingParameter) {
 // Export functions for use in Node.js/CommonJS environments
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    nullToProportion,
-    ruleCheck,
-    proportionCheck,
-    ruleTranslator,
-    getArrayElementsById,
-    debugLog,
-    debugPoolState,
-    formatPoolState,
-    debugPickedConditions,
-    pickSeed,
-    start,
-    solveable,
-    poolSubtraction,
-    picker,
+    // Main API
+    createTrialSequences,
     counterbalance,
     prepend,
     append,
-    createTrialSequences
+    
+    // Validation functions
+    ruleCheck,
+    proportionCheck,
+    
+    // Core helper functions
+    nullToProportion,
+    pickSeed,
+    start,
+    solveable,
+    picker,
+    poolSubtraction,
+    ruleTranslator,
+    getArrayElementsById,
+    
+    // Debug functions
+    debugLog,
+    debugPoolState,
+    formatPoolState,
+    debugPickedConditions
   };
 }
