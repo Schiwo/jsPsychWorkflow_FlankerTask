@@ -110,3 +110,18 @@ function printMatrix(matrix) {
 
   console.log(formattedString);
 }
+
+// Export functions for use in Node.js/CommonJS environments
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    deepCopy,
+    randint,
+    proportionalRandint,
+    instrLoader,
+    shuffle,
+    loadScriptAsync,
+    loadScripts,
+    matrixPrint,
+    printMatrix
+  };
+}

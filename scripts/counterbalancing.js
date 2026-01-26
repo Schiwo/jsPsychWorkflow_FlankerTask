@@ -1,4 +1,30 @@
-// 
+// Load dependencies only in Node.js environment
+if (typeof require !== 'undefined' && typeof global !== 'undefined') {
+  try {
+    global.math = require('mathjs');
+  } catch (e) {
+    // math.js not available in this context
+  }
+  try {
+    const baseFuncs = require('./baseFunctions.js');
+    // In Node.js, assign to global scope to match browser behavior
+    if (!global.deepCopy) global.deepCopy = baseFuncs.deepCopy;
+    if (!global.randint) global.randint = baseFuncs.randint;
+    if (!global.proportionalRandint) global.proportionalRandint = baseFuncs.proportionalRandint;
+  } catch (e) {
+    // baseFunctions not available in this context
+  }
+}
+
+// Get math library - works in both browser and Node.js
+function getMath() {
+  if (typeof global !== 'undefined' && global.math) {
+    return global.math;
+  } else if (typeof window !== 'undefined' && window.math) {
+    return window.math;
+  }
+  throw new Error('math.js library not found');
+}
 // function balancedSubset(levels) {
 //   // for (var b = 0; b < factorProportions.length; i++) {
 //   //   if (factorProportions[b] != null) {
@@ -87,8 +113,6 @@ function getArrayElementsById(array, indices) {
   return indices.map(id => array[id]);
 }
 
-// debugging configuration
-var DEBUG_MODE = true;
 
 // debug function to log trial status
 function debugLog(message) {
@@ -100,9 +124,29 @@ function debugLog(message) {
 // debug function to display pool state (simplified)
 function debugPoolState(pool, label) {
   if (DEBUG_MODE) {
-    var sum = math.sum(pool);
+    var sum = getMath().sum(pool);
     console.log("[POOL] " + label + " - Remaining trials: " + sum);
   }
+}
+
+// function to format pool state with indices and values
+function formatPoolState(pool) {
+  var formatted = "";
+  var size = pool.size();
+  
+  function iterateArray(arr, indices) {
+    if (Array.isArray(arr)) {
+      for (var i = 0; i < arr.length; i++) {
+        var newIndices = indices.concat([i]);
+        iterateArray(arr[i], newIndices);
+      }
+    } else {
+      formatted += "[" + indices.join(",") + "]: " + arr + "\n";
+    }
+  }
+  
+  iterateArray(pool.valueOf(), []);
+  return formatted;
 }
 
 // debug function to display picked conditions
@@ -124,6 +168,7 @@ function pickSeed(prop) {
 //function to create 
 function start(factors, factorProportions){ 
     //coding variables
+    const math = getMath();
     var basePool = math.ones.apply(null, factors); //create base matrix
     for (var i = 0; i < factorProportions.length; i++) { //apply proportion rules
       // if (factorProportions[i] == null) {
@@ -146,6 +191,7 @@ function solveable(pool, prev, index){
   if (pool == undefined){
     return true
   }
+  const math = getMath();
   var valid = ruleTranslator(factors, transitionRules, prev, index);
 
 if (math.sum(math.subset(pool, math.index.apply(null, valid))) == 0) {
@@ -156,12 +202,14 @@ if (math.sum(math.subset(pool, math.index.apply(null, valid))) == 0) {
 }
 
 function poolSubtraction(matrix, vector){
+  const math = getMath();
   return   math.subset(matrix, math.index.apply(null, vector),
               math.subtract(math.subset(matrix, math.index.apply(null, vector)), 1));
 }
 
 // function used to pick random variables from the matrix following the conditions
 function picker(pool, prev, index, proportions){ 
+  const math = getMath();
   var valid = ruleTranslator(factors, transitionRules, prev, index);
   var id = 0;
   while (true) {
@@ -191,10 +239,14 @@ function picker(pool, prev, index, proportions){
 
 // function used for list generation, sets: amount of counterbalanced variable sets per block
 function counterbalance(counterBalancingParameter) {
+  const math = getMath();
   factors = counterBalancingParameter.factors;
   factorProportions = nullToProportion(counterBalancingParameter.factorProportions, factors)
   transitionRules = counterBalancingParameter.transitionRules;
   sets = counterBalancingParameter.sets;
+
+  // debugging configuration
+  DEBUG_MODE = counterBalancingParameter.DEBUG_MODE || false;
 
   //check rules
   ruleCheck(transitionRules, factors);
@@ -223,7 +275,8 @@ function counterbalance(counterBalancingParameter) {
 
 
   //pick the order
-  while (j <= trialcount) {
+  while (j < trialcount) {
+    debugLog("Loop check: j=" + j + ", trialcount=" + trialcount + ", pool_sum=" + math.sum(remainingPool));
     if (solveable(remainingPool, trialList, j)) {
       trialList[j] = picker(remainingPool, trialList, j, factorProportions);
       debugPickedConditions(j, trialList[j]);
@@ -240,7 +293,10 @@ function counterbalance(counterBalancingParameter) {
         tryNr = 0;
         restartNr ++;
         if (restartNr > 15) {
-          throw "Can't find a solution for the specified factors.";
+          var remainingCount = math.sum(remainingPool);
+          var valid = ruleTranslator(factors, transitionRules, trialList, j);
+          var availableCount = math.sum(math.subset(remainingPool, math.index.apply(null, valid)));
+          throw "Can't find a solution for the specified factors.\nFailed at trial " + j + ".\nRemaining conditions in pool: " + remainingCount + ".\nAvailable conditions matching rules: " + availableCount + ".\nPool state:\n" + formatPoolState(remainingPool);
         }
       }
       remainingPool = basePool;
@@ -284,7 +340,7 @@ function prepend(rawList, counterBalancingParameter) {
   return revList.reverse()
 }
   
-function append(rawList, factors, transitionRules, n) {
+function append(rawList, counterBalancingParameter) {
   n = counterBalancingParameter.appendTrials;
   rules = counterBalancingParameter.appendRules;
   factors = counterBalancingParameter.factors
@@ -314,4 +370,28 @@ function createTrialSequences(counterBalancingParameter) {
   trialList = prepend(trialList, counterBalancingParameter);
   trialList = append(trialList, counterBalancingParameter);
   return trialList;
+}
+
+// Export functions for use in Node.js/CommonJS environments
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    nullToProportion,
+    ruleCheck,
+    proportionCheck,
+    ruleTranslator,
+    getArrayElementsById,
+    debugLog,
+    debugPoolState,
+    formatPoolState,
+    debugPickedConditions,
+    pickSeed,
+    start,
+    solveable,
+    poolSubtraction,
+    picker,
+    counterbalance,
+    prepend,
+    append,
+    createTrialSequences
+  };
 }

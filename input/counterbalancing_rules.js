@@ -8,6 +8,7 @@ function createCounterBalancingParameter() {
         prependRules: [["identical", 1, 1], null, ["next", 1], null],
         appendTrials: 0,
         appendRules: [null, null, null, null],
+        debugMode: false
     }
 
     return counterBalancingParameter
@@ -53,4 +54,6 @@ appendTrials: number of additional trials you want to append after the trials ba
     Please note that these additional trials do not come from the balanced pool as the other trials.
 
 appendRules: Set the rules for the appended trials. The rules are declared as described under transitionRules.
+
+debugMode: Set to true to enable debug mode, which provides additional information in the console about the counterbalancing process.
 */
