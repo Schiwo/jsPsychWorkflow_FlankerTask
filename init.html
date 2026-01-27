@@ -1,61 +1,124 @@
 <!DOCTYPE html>
-<html>
+<!-- 
+  This is the main HTML file for the Flanker Task experiment.
+  It sets up the web page and loads all necessary code and styling to run the experiment.
+-->
+<html lang="en">
 
 <head>
+  <!-- These meta tags tell the browser how to display and interpret this page -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
   <title>Experiment</title>
   <!-- written on jsPsych Version 7.3.2 -->
-  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
 
-  <!-- load CSS  -->
-  <link href="https://unpkg.com/jspsych@7.3.2/css/jspsych.css" rel="stylesheet" type="text/css" />
-  <link href="css/experimentStyle.css" rel="stylesheet" type="text/css"></link>
+  <!-- ========== SECTION 1: LOAD STYLING (CSS) ========== -->
+  <!-- CSS (Cascading Style Sheets) controls how things look on the page -->
+  <link href="https://unpkg.com/jspsych@7.3.2/css/jspsych.css" rel="stylesheet" type="text/css">
+  <!-- Above: Load the default jsPsych styling from the internet -->
+  <link href="css/experimentStyle.css" rel="stylesheet" type="text/css">
+  <!-- Above: Load our custom styling from the local css/ folder -->
   
 
-  <!-- load jsPsych library from CDN host  -->
+  <!-- ========== SECTION 2: LOAD JSPSYCH LIBRARY ========== -->
   <script src="https://unpkg.com/jspsych@7.3.2"></script>
 
-  <!-- load jsPsych plugins  -->
+  <!-- ========== SECTION 3: LOAD JSPSYCH PLUGINS ========== -->
+  <!-- Plugins are add-ons to jsPsych that create specific types of experimental trials -->
+  <!-- Each script below adds a different trial type to the experiment -->
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
+  <!-- Above: Plugin for showing text/images and recording keyboard responses -->
   <script src="https://unpkg.com/@jspsych/plugin-instructions@1.1.2"></script>
+  <!-- Above: Plugin for displaying instructions to participants -->
   <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.2"></script>
+  <!-- Above: Plugin for text input surveys  -->
   <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.2"></script>
+  <!-- Above: Plugin for form-based surveys with multiple question types -->
   <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.2"></script>
+  <!-- Above: Plugin for running custom JavaScript functions during the experiment -->
   <script src="https://unpkg.com/@jspsych/plugin-browser-check@1.0.2"></script>
+  <!-- Above: Plugin for checking browser compatibility -->
   <script src="https://unpkg.com/@jspsych/plugin-external-html@1.1.3"></script>
+  <!-- Above: Plugin for loading external HTML files into the experiment -->
 
 
-  <!-- load external libraries  -->
+  <!-- ========== SECTION 4: LOAD EXTERNAL LIBRARIES ========== -->
+  <!-- These are additional JavaScript libraries that provide useful functions -->
   <script src="src/libraries/math/dist/math.js"></script>
+  <!-- Above: Math library for mathematical operations -->
 
-  <!-- load workflow scripts  -->
+
+  <!-- ========== SECTION 5: LOAD WORKFLOW SCRIPTS ========== -->
+  <!-- These scripts are custom files we created to define the experiment logic -->
   <script src="scripts/baseFunctions.js"></script>
+  <!-- Above: Basic utility functions used throughout the experiment -->
   <script>loadScripts("scripts/", ["counterbalancing", "stimulusHelper", "instructionsReader", "functionalTrials"])</script>
+  <!-- Above: Load multiple helper scripts from the scripts/ folder that handle:
+       - counterbalancing: Assigning different stimulus orders to different participants
+       - stimulusHelper: Some reoccuring trial parts such as feedback.
+       - instructionsReader: Managing instruction text
+       - functionalTrials: Some special function "trials" (e.g. "Welcome to the experiment" or data storage) -->
 
-  <!-- load experiment parameter  -->
-  <script> loadScripts("input/", ["timelineBuilder", "blockBuilder", "counterbalancing_rules", "experiment_information", "stimulus_constructor"])</script>
+  <!-- ========== SECTION 6: LOAD EXPERIMENT CONFIGURATION ========== -->
+  <!-- These files contain settings, parameters and order for this specific experiment -->
+  <script>loadScripts("input/", ["timelineBuilder", "blockBuilder", "counterbalancing_rules", "experiment_information", "stimulus_constructor"])</script>
+  <!-- Above: Load configuration files that define:
+       - timelineBuilder: Organizes all trials in the correct order
+       - blockBuilder: Defines the creation of trial blocks.
+       - counterbalancing_rules: Rules for how to vary the conditions within participants.
+       - experiment_information: General experiment settings (used keys, durations etc.).
+       - stimulus_constructor: Translates trial conditions into the visual appearance of the stimulus. -->
 
-  <!-- load Jatos library -->
+  <!-- ========== SECTION 7: LOAD JATOS ========== -->
+  <!-- JATOS (Just Another Tool for Online Studies) is the platform running this experiment -->
+  <!-- It handles participant links, data collection, and storage -->
   <script src="jatos.js"></script>
 
 </head>
 
 <body id="experimentSurface">
+  <!-- 
+    The <body> section contains the visible page content and the core experiment code.
+    id="experimentSurface" is a unique identifier that jsPsych uses to know where to display the experiment.
+  -->
   <script>
+    // These variables control skim mode and skipping to main experiment. Used for debugging/testing.
+    // If you want to use these, create a new Jatos component that points init.html as file path and define componentInput JSON like:
+    // {  "skimMode": true, "skipToMain": true }
     var skimMode = false;
     var skipToMain = false;
+    
+    // ========== INITIALIZE JSPSYCH AND TIMELINE ==========   
 
     var jsPsych = initJsPsych();
-    var experimentTimeline = [];
-     
+    // Above: Create the main jsPsych object that will control the entire experiment
     
+    var experimentTimeline = [];
+    // Above: This array will hold all the trials and blocks that make up the experiment
+    
+    
+    // ========== START THE EXPERIMENT ==========
+    // jatos.onLoad() waits for JATOS to fully load before running this code
     jatos.onLoad(() => {
-      var experimentTimeline = timelineBuilder();
-      for (let index = 0; index < experimentTimeline.length; index++) {
-        if (!experimentTimeline[index].type) {
-          console.log(experimentTimeline[index]);
-        }
+      // Read flags from JATOS componentInput
+      if (jatos.componentInput) {
+        console.log(jatos.componentInput);
         
+        if (jatos.componentInput.skimMode !== undefined) {
+          skimMode = jatos.componentInput.skimMode;
+        }
+        if (jatos.componentInput.skipToMain !== undefined) {
+          skipToMain = jatos.componentInput.skipToMain;
+        }
       }
+
+      // Build the timeline: Get all the trials and blocks from timelineBuilder()
+      // This is where the magic happens and where we define what the experiment actually looks like.
+      // Continue in the file input/timelineBuilder.js to continue with the code flow.  
+      experimentTimeline = timelineBuilder();
+
+      // RUN THE EXPERIMENT: Tell jsPsych to start running all the trials in the timeline
       jsPsych.run(experimentTimeline);
     });
   </script>
