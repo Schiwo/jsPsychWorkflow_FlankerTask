@@ -1,5 +1,5 @@
     // templates for special functionality and short instructions
-function createFunctionalTrials(){
+function createFunctionalTrials(expInfo){
     return {   
         saveData: {
             type: jsPsychCallFunction,
@@ -70,9 +70,10 @@ function createFunctionalTrials(){
             type: jsPsychHtmlKeyboardResponse,
             stimulus: (data) => {
                 if (jsPsych.getCurrentTrial().data.blockNr == 1) {
-                return `This is block nr. ${jsPsych.getCurrentTrial().data.blockNr} of ${expInfo.blocks}.<br/>Continue by pressing "${expInfo.instrKeyForward}"!`; //
+                    return `This is block nr. ${jsPsych.getCurrentTrial().data.blockNr} of ${expInfo.blocks}.<br/>Continue by pressing "${expInfo.instrKeyForward}"!`;
                 } else {
-                return `This is block nr. ${jsPsych.getCurrentTrial().data.blockNr} of ${expInfo.blocks}. You can take a short break, if you want to!<br/>Continue by pressing "${expInfo.instrKeyForward}"!`; } //
+                    return `This is block nr. ${jsPsych.getCurrentTrial().data.blockNr} of ${expInfo.blocks}. You can take a short break, if you want to!<br/>Continue by pressing "${expInfo.instrKeyForward}"!`;
+                }
             },
             choices: [expInfo.instrKeyForward],
             data: { trialPart: 'blockPause' }
@@ -91,8 +92,8 @@ function createFunctionalTrials(){
                 experiment_aborted = true;
                 if(data.mobile){
                     return '<p>A desktop/laptop computer is required to participate in this experiment.</p>';
-            };
+                }
+            }
         }
-    }   
     }
 }

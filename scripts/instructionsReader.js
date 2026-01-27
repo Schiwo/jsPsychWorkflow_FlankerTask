@@ -1,4 +1,4 @@
-function createInstructions() {
+function createInstructions(expInfo) {
   //load a certain amount of pictures from given path. Used to gather instruction pages.
   function instrLoader(foldername, filename, fileformat, length){
     var instructionsTemplate = {

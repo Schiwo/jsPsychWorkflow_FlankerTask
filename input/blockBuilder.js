@@ -1,4 +1,4 @@
-function buildExperimentalBlock(timeline, tstructure, tlist, block, training = false, trainingLength) {
+function buildExperimentalBlock(timeline, tstructure, tlist, block, expInfo, functionalTrials, training = false, trainingLength) {
   // console.log(timeline);
   blockLength = training? (tlist.length * trainingLength) : tlist.length;
 
@@ -8,21 +8,21 @@ function buildExperimentalBlock(timeline, tstructure, tlist, block, training = f
     timeline.push(blockPauseCopy);
   }
   
-  blockStart = stimulusConstructor("fixationcross", null, null, training? - (block + 1) : (block + 1));
+  blockStart = stimulusConstructor(expInfo, "fixationcross", null, null, training? - (block + 1) : (block + 1));
   blockStart.trial_duration = expInfo.blockStartDuration;
   timeline.push(blockStart);
 
   for (var i = 0; i < blockLength; i++) {
     let trialCopy = deepCopy(tstructure);
     for (var j = 0; j < trialCopy.length; j++) {
-      timeline.push(stimulusConstructor(trialCopy[j], tlist, i, block));
+      timeline.push(stimulusConstructor(expInfo, trialCopy[j], tlist, i, block));
     }
   }
   return timeline;
 }
 
 /* START EXPERIMENT */
-function buildExperimentStart(timeline) {
+function buildExperimentStart(timeline, functionalTrials) {
   /*EXPERIMENT START*/
   if (!skimMode) { //skip if skimMode
     timeline.push(functionalTrials.browserCheck); //check participants browser
@@ -33,7 +33,7 @@ function buildExperimentStart(timeline) {
 }
 
 /* END EXPERIMENT */
-function buildExperimentEnd(timeline){
+function buildExperimentEnd(timeline, functionalTrials){
   timeline.push(functionalTrials.saveData)
   timeline.push(functionalTrials.exit);
   return timeline;
