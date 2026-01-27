@@ -14,6 +14,8 @@ function createCounterBalancingParameter() {
     return counterBalancingParameter
 }
 
+
+
 /*
 #### COUNTERBALANCING PARAMETER ####
 
@@ -34,12 +36,28 @@ factorProportions: Set the proportion of how often factor levels occur.
 
 transitionRules: Set the rules for the trial to trial transitions of each factor.
     Input must be an array with n elements, with n = the number of factors.
-    Each element must be either null, if there are no specific transition rules for this factor, or an array containing the rules parameters for this factor:
+    Each element must be either null, if there are no specific transition rules for this factor, a function for custom rules, or an array containing the rules parameters for this factor:
     The implemented options for transition rules are:
     null: the factor level will be pseudo randomly determined.
+    function: a custom rule function (see CUSTOM TRANSITION RULES section above).
     ["identical", x, y]: The factor level must be identical as the to factor level of factor y, but x trial before the current trial.
     ["different", x, y]: The factor level cannot be different than the factor level of factor y, but x trial before the current trial.
     ["next", x]: The factor level of the same factor in the last trial will be increased by x in a circular way (e.g. factor level 0 becomes factor level 1; after the last factor level x, it restarts with factor level 0).
+
+    #### CUSTOM TRANSITION RULES ####
+    In addition to the built-in transition rules, you can define custom rule functions.
+    A custom rule function receives three parameters:
+    - numLevels: Number of levels for this factor
+    - currentIndex: Current trial index (0-indexed)
+    - previousTrials: Array of all previously selected trial combinations
+
+    The function should return either:
+    - An array of valid level indices (e.g., [0, 1, 2] means levels 0, 1, or 2 are valid)
+    - A single level index (e.g., 0 means only level 0 is valid)
+
+    For detailed examples (ABBAABBAA pattern, alternating pattern, avoid repetition, etc.),
+    see COUNTERBALANCING_EXPLANATION.txt
+
 
 sets: amount of trials with identical conditions per block (e.g. if sets = 3, each factor level combination will occur 3 times per block). 
 
@@ -56,4 +74,8 @@ appendTrials: number of additional trials you want to append after the trials ba
 appendRules: Set the rules for the appended trials. The rules are declared as described under transitionRules.
 
 debugMode: Set to true to enable debug mode, which provides additional information in the console about the counterbalancing process.
+*/
+
+/*
+
 */
