@@ -4,8 +4,8 @@
 // This is the main counterbalancing module for creating balanced trial sequences.
 //
 // IMPORTANT: Node.js Setup
-// If running in Node.js (testing/development), use counterbalancing.setup.js first:
-//   const counterbalancing = require('./counterbalancing.setup.js');
+// If running in Node.js (testing/development), use tests/counterbalancing.setup.js first:
+//   const counterbalancing = require('./tests/counterbalancing.setup.js');
 //
 // If running in browser (production), include via <script> tag:
 //   <script src="mathjs.js"></script>

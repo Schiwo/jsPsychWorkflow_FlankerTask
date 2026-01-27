@@ -21,7 +21,7 @@ try {
 
 // Load helper functions from baseFunctions.js and make them globally available
 try {
-  const baseFuncs = require('./baseFunctions.js');
+  const baseFuncs = require('../scripts/baseFunctions.js');
   
   // Add these functions to the global scope so they can be used by counterbalancing.js
   if (!global.deepCopy) global.deepCopy = baseFuncs.deepCopy;
@@ -35,7 +35,7 @@ try {
 
 // Finally, load the main counterbalancing module
 try {
-  const counterbalancing = require('./counterbalancing.js');
+  const counterbalancing = require('../scripts/counterbalancing.js');
   console.log('[SETUP] Counterbalancing module loaded successfully');
   module.exports = counterbalancing;
 } catch (e) {
@@ -53,21 +53,3 @@ var factorProportions;        // How often each factor option should appear
 var transitionRules;          // Rules about how trials can follow each other
 var sets;                     // How many complete sets of trials to create
 var DEBUG_MODE;               // Whether to print debug information to the console
-
-/**
- * Get the math library - Find it whether we're in a browser or Node.js
- * @returns {Object} The math.js library that we can use for calculations
- * @throws {Error} If the math.js library cannot be found
- */
-function getMath() {
-  // First check if we're in Node.js and math is available there
-  if (typeof global !== 'undefined' && global.math) {
-    return global.math;
-  } 
-  // Otherwise check if we're in a browser and math is available
-  else if (typeof window !== 'undefined' && window.math) {
-    return window.math;
-  }
-  // If we get here, math.js wasn't found - this is an error
-  throw new Error('math.js library not found');
-}

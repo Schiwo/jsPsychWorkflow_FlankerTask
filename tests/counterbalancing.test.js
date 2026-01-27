@@ -3,6 +3,9 @@
  * Tests the trial sequence generation with various factors, proportions, and transition rules
  */
 
+// Setup Node.js environment (loads math.js and helper functions globally)
+require('./counterbalancing.setup.js');
+
 // Load the counterbalancing functions
 const {
   nullToProportion,
@@ -39,14 +42,14 @@ describe('Counterbalancing', () => {
       const factors = [2, 2];
       const rules = { "0": null };
       
-      expect(() => ruleCheck(rules, factors)).toThrow('Rules must be an array');
+      expect(() => ruleCheck(rules, factors)).toThrow('Rule error; rules must be an array with n elements (n = number of factors).');
     });
 
     test('ruleCheck should throw when rules length does not match factors', () => {
       const factors = [2, 2, 2];
       const rules = [null, ["identical", 1, 0]];
       
-      expect(() => ruleCheck(rules, factors)).toThrow('Rules must be an array with n elements');
+      expect(() => ruleCheck(rules, factors)).toThrow('Rule error; rules must be an array with n elements (n = number of factors).');
     });
 
     test('ruleCheck should throw when identical rule has x < 1', () => {
