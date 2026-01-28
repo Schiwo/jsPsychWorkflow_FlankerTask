@@ -1,4 +1,22 @@
+/**
+ * Creates and returns the configuration object that controls how trials are counterbalanced.
+ *
+ * This function defines how experimental conditions are combined, how often each condition
+ * level appears, and how condition levels are allowed to transition from one trial to the next.
+ * It also specifies whether additional trials should be prepended or appended to the balanced
+ * sequence and how those extra trials should follow the same (or different) transition rules.
+ *
+ * The returned object is used by the trial sequence generator to build balanced and
+ * rule-consistent trial lists for both training and main experimental blocks.
+ *
+ * Keeping all counterbalancing settings here makes it easy to adjust the experimental design
+ * (e.g., changing the number of conditions, adding transition constraints, or enabling debug
+ * output) without modifying the sequence-generation logic itself.
+ *
+ * @returns {Object} An object containing all counterbalancing parameters and transition rules.
+ */
 function createCounterBalancingParameter() {
+
     let counterBalancingParameter = {
         conditions: [2,2,2,2], // [current congruency, previous congruency, stimulus set, stimulus option]
         conditionProportions: [null, null, null, null],
@@ -17,7 +35,7 @@ function createCounterBalancingParameter() {
 
 
 /*
-#### COUNTERBALANCING PARAMETER ####
+#### How to use? ####
 
 conditions: set conditions and condition levels.
     Input must be an array with n integers with n = the number of fators. 
@@ -36,13 +54,15 @@ conditionProportions: Set the proportion of how often condition levels occur.
 
 transitionRules: Set the rules for the trial to trial transitions of each condition.
     Input must be an array with n elements, with n = the number of conditions.
-    Each element must be either null, if there are no specific transition rules for this condition, a function for custom rules, or an array containing the rules parameters for this condition:
+    Each element must be either null, if there are no specific transition rules for this condition, a function for custom rules, or an array containing the rules parameters for this 
+    condition:
     The implemented options for transition rules are:
     null: the condition level will be pseudo randomly determined.
     function: a custom rule function (see CUSTOM TRANSITION RULES section above).
     ["identical", x, y]: The condition level must be identical as the to condition level of condition y, but x trial before the current trial.
     ["different", x, y]: The condition level cannot be different than the condition level of condition y, but x trial before the current trial.
-    ["next", x]: The condition level of the same condition in the last trial will be increased by x in a circular way (e.g. condition level 0 becomes condition level 1; after the last condition level x, it restarts with condition level 0).
+    ["next", x]: The condition level of the same condition in the last trial will be increased by x in a circular way (e.g. condition level 0 becomes condition level 1; after the last condition 
+    level x, it restarts with condition level 0).
 
     #### CUSTOM TRANSITION RULES ####
     In addition to the built-in transition rules, you can define custom rule functions.
@@ -66,7 +86,9 @@ preprendTrials: number of additional trials you want to prepend before the trial
 
 prependRules: Set the rules for the prepended trials. The rules are declared as described under transitionRules. PLEASE NOTE that to apply the rules for the prepended trials 
     the already created trial list is reversed (the first trial becomes the last trial), then the declared number of trials are appended to the list, and then the list is reversed again.
-    This might affect how you have to specify the prependRules.
+    This might affect how you have to specify the prependRules (in the present example, we want to prepend a trial that fullfills the "previous congruency" condition of the first trial specified 
+    under transition rules; For this purpose we specifiy that current "congruency condition" of the prepended trial must be identical to the "previous congruency" condition of the last trial 
+    (which due to the reverse-mechanism is the first trial of the already created list).
 
 appendTrials: number of additional trials you want to append after the trials balanced according to the previously declared parameter. 
     Please note that these additional trials do not come from the balanced pool as the other trials.

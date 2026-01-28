@@ -53,7 +53,7 @@
   <!-- These scripts are custom files we created to define the experiment logic -->
   <script src="scripts/baseFunctions.js"></script>
   <!-- Above: Basic utility functions used throughout the experiment -->
-  <script>loadScripts("scripts/", ["counterbalancing", "stimulusHelper", "instructionsReader", "functionalTrials"])</script>
+  <script>loadScripts("scripts/", ["counterbalancing", "stimulusHelper", "instructionsReader"])</script>
   <!-- Above: Load multiple helper scripts from the scripts/ folder that handle:
        - counterbalancing: Assigning different stimulus orders to different participants
        - stimulusHelper: Some reoccuring trial parts such as feedback.
@@ -62,7 +62,7 @@
 
   <!-- ========== SECTION 6: LOAD EXPERIMENT CONFIGURATION ========== -->
   <!-- These files contain settings, parameters and order for this specific experiment -->
-  <script>loadScripts("input/", ["timelineBuilder", "blockBuilder", "counterbalancing_rules", "experiment_information", "stimulus_constructor"])</script>
+  <script>loadScripts("input/", ["timelineBuilder", "blockBuilder", "counterbalancing_parameter", "experiment_information", "functional_trials", "stimulus_constructor"])</script>
   <!-- Above: Load configuration files that define:
        - timelineBuilder: Organizes all trials in the correct order
        - blockBuilder: Defines the creation of trial blocks.

@@ -1,14 +1,25 @@
+/**
+ * Builds and returns the full jsPsych timeline for the experiment.
+ *
+ * The timeline defines the complete sequence of events a participant will experience (eg welcome screens, instructions,  experimental trials,
+ * break screens etc) as well as functional elements (eg data-saving).
+ *
+ * This function gathers all required configuration and helper objects (e.g., experiment
+ * settings, counterbalancing rules, functional trials, and instructions), generates
+ * condition sequences for training and main blocks, and then assembles everything
+ * into a single ordered array that jsPsych can run.
+ *
+ * @returns {Array} An ordered list (the "timeline") of jsPsych elements that make up the experiment flow.
+ */
+function timelineBuilder() {
 
-// This function builds the timeline for the experiment.
-// The timeline is a list of all the steps (instructions, trials, etc.) that the participant will go through.
-function timelineBuilder(){
   // Get information about the experiment (like number of blocks, used keys, etc.). See further in expInfo.js
   const expInfo = createExpInfo();
-  // Set up counterbalancing (to make sure conditions are shown in a balanced way). See further in counterbalancing_rules.js
+  // Set up counterbalancing (to make sure conditions are shown in a balanced way). See further in counterbalancing_parameter.js
   const counterBalancingParameter = createCounterBalancingParameter();
   // Create the different types of trials with standard functions (eg welcoming to the experiment, asking for age and gender, etc). See further in functionalTrials.js
   const functionalTrials = createFunctionalTrials(expInfo);
-  // Get the instructions that will be shown to the participant. See further in instructions.js
+  // Get the instructions that will be shown to the participant. See further in instructionsReader.js
   const instructionsArray = createInstructions(expInfo);
 
   // --- Create trial lists ---
@@ -29,7 +40,7 @@ function timelineBuilder(){
   }
 
   // --- Create the timeline ---
-  // This array will store the full order of each jsPsych element that is used to run the experiment (instructions, trials, etc.)
+  // This array will store the full order of each jsPsych elements that are used to run the experiment (instructions, trials, etc.).
   timeline = [];
   
   // --- Add trials and instructions to the timeline ---
