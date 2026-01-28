@@ -10,7 +10,7 @@
  *                          instruction settings and navigation keys.
  * @returns {Array} An array of jsPsychInstructions trial objects.
  */
-function createInstructions(expInfo) {
+const createInstructions = (expInfo) => {
 
   /**
    * Builds a single jsPsychInstructions trial by loading a set of images
@@ -22,50 +22,40 @@ function createInstructions(expInfo) {
    * @param {Number} length - Number of instruction pages to load
    * @returns {Object} A configured jsPsychInstructions trial template
    */
-  function instrLoader(foldername, filename, fileformat, length) {
-    var instructionsTemplate = {
-      type: jsPsychInstructions,
+  const instrLoader = (foldername, filename, fileformat, length) => ({
+    type: jsPsychInstructions,
 
-      // Dynamically generates the instruction pages when the trial is run.
-      pages: () => {
-        var instructionArray = [];
+    // Dynamically generates the instruction pages when the trial is run.
+    pages: () => {
+      const instructionArray = [];
 
-        // Load each instruction image and wrap it in an <img> tag
-        for (var i = 0; i < length; i++) {
-          var instrImage = new Image();
-          instrImage.src = `instructions/${foldername}/${filename}${i + 1}${fileformat}`;
+      // Load each instruction image and wrap it in an <img> tag
+      for (let i = 0; i < length; i++) {
+        const instrImage = new Image();
+        instrImage.src = `instructions/${foldername}/${filename}${i + 1}${fileformat}`;
 
-          // Store the image as an HTML string for jsPsych to display
-          instructionArray[i] = `<img src="${instrImage.src}" />`;
-        }
+        // Store the image as an HTML string for jsPsych to display
+        instructionArray.push(`<img src="${instrImage.src}" />`);
+      }
 
-        return instructionArray;
-      },
+      return instructionArray;
+    },
 
-      // Navigation keys for moving forward and backward through the instructions
-      key_forward: expInfo.instrKeyForward,
-      key_backward: expInfo.instrKeyBackward
-    };
-
-    return instructionsTemplate;
-  }
-
-
-  // Collect all instruction trials into a single array.
-  var instructionsArray = [];
-
-  // Iterate over all configured instruction sets and generate instruction trials
-  Object.values(expInfo.instructions).forEach(instruction => {
-    instructionsArray.push(
-      instrLoader(
-        instruction.folder,
-        instruction.file,
-        instruction.format,
-        instruction.length
-      )
-    );
+    // Navigation keys for moving forward and backward through the instructions
+    key_forward: expInfo.instrKeyForward,
+    key_backward: expInfo.instrKeyBackward
   });
 
-  // Return the complete list of instruction trials
-  return instructionsArray;
-}
+  /**
+   * Generate instruction trials from the configuration object.
+   * Each entry corresponds to one instruction set defined in expInfo.instructions.
+   */
+  return Object.values(expInfo.instructions).map(instruction =>
+    instrLoader(
+      instruction.folder,
+      instruction.file,
+      instruction.format,
+      instruction.length
+    )
+  );
+};

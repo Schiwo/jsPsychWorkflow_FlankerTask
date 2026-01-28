@@ -1,115 +1,142 @@
-// function used to deep copy trials
+/**
+ * Creates a deep copy of an object or array.
+ *
+ * @param {*} oldObj - The object or array to be deep-copied
+ * @returns {*} A fully independent deep copy of the input
+ */
 function deepCopy(oldObj) {
-  var newObj = oldObj;
+  // Default to the original value (will be replaced if it's an object/array)
+  let newObj = oldObj;
+
+  // Only process non-null objects (includes arrays)
   if (oldObj && typeof oldObj === 'object') {
-      newObj = Object.prototype.toString.call(oldObj) === "[object Array]" ? [] : {};
-      for (var i in oldObj) {
-          newObj[i] = deepCopy(oldObj[i]);
-      }
+    // Determine whether we are copying an array or a plain object
+    newObj = Object.prototype.toString.call(oldObj) === "[object Array]" ? [] : {};
+
+    // Recursively copy each property or element
+    for (let i in oldObj) {
+      newObj[i] = deepCopy(oldObj[i]);
+    }
   }
+
   return newObj;
-}
+};
 
-// function used to get random int 0 to max (non inclusive)
+
+/**
+ * Returns a random integer between 0 (inclusive) and max (exclusive).
+ *
+ * @param {Number} max - Upper bound (non-inclusive) for the random value
+ * @returns {Number} A random integer in the range [0, max)
+ */
 function randint(max) {
-min = 0
-max = Math.floor(max) - 1;
-return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+  const min = 0;
+  max = Math.floor(max) - 1;
 
-// function used to select an index from an array of proportions such that the probability of selecting each index is proportional to the value at that index
+  // Generate a random integer in the specified range
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+
+/**
+ * Selects a random index based on weighted proportions.
+ *
+ * @param {Number[]} proportions - Array of non-negative weights
+ * @returns {Number} The selected index
+ */
 function proportionalRandint(proportions) {
-  let sum = proportions.reduce((a, b) => a + b, 0)
-  let pick = randint(sum)
+  // Calculate the total weight
+  const sum = proportions.reduce((a, b) => a + b, 0);
 
-  let steps = 0
-  for (i = 0; i < proportions.length; i++) {
-      steps += proportions[i];
-      if (pick < steps){
-        return i
-      }
+  // Pick a random number in the range [0, sum)
+  const pick = randint(sum);
+
+  let steps = 0;
+
+  // Walk through the proportions until the picked value falls within a range
+  for (let i = 0; i < proportions.length; i++) {
+    steps += proportions[i];
+    if (pick < steps) {
+      return i;
+    }
   }
-}
+};
 
 
-function instrLoader(folder, instrLength){
-  var imgArray = [];
-  for (var i = 0; i < instrLength; i++) {
+/**
+ * Preloads instruction images from a given folder.
+ *
+ * @param {String} folder - Name of the instruction folder
+ * @param {Number} instrLength - Number of instruction images to load
+ * @returns {Image[]} An array of preloaded Image objects
+ */
+function instrLoader(folder, instrLength) {
+  const imgArray = [];
+
+  // Load each instruction image
+  for (let i = 0; i < instrLength; i++) {
     imgArray[i] = new Image();
     imgArray[i].src = `instructions/${folder}/Folie${i + 1}.JPG`;
   }
+
   return imgArray;
-}
+};
 
+/**
+ * Randomly shuffles an array in place using the Fisher–Yates algorithm.
+ *
+ * @param {Array} a - The array to shuffle
+ * @returns {Array} The same array, shuffled
+ */
 function shuffle(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-}
+  for (let i = a.length - 1; i > 0; i--) {
+    // Pick a random index from 0 to i
+    const j = Math.floor(Math.random() * (i + 1));
+
+    // Swap the elements at indices i and j
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+
+  return a;
+};
 
 
 
-function loadScriptAsync(path) {
-  return new Promise((resolve, reject) => {
-      var script = document.createElement("script");
-      script.src = path;
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-  });
-}
-
-
+/**
+ * Loads multiple JavaScript files asynchronously and optionally runs a callback
+ * after all scripts have been successfully loaded.
+ *
+ * @param {String} directory - Directory path for the scripts
+ * @param {String[]} files - Array of script filenames (without extension)
+ * @param {String} [extension=".js"] - File extension to use for each script
+ * @param {Function} [callback] - Optional function to run after all scripts load
+ */
 async function loadScripts(directory, files, extension = ".js", callback) {
-  var scripts = [];
-  for (var file of files) {
-      var path = directory + file + extension;
-      console.log(path);
-      scripts.push(loadScriptAsync(path));
+  const scripts = [];
+
+  // Create a list of promises for each script to be loaded
+  for (const file of files) {
+    const path = directory + file + extension;
+    console.log(path);
+    scripts.push(loadScriptAsync(path));
   }
 
   try {
-      await Promise.all(scripts);
-      console.log("All scripts loaded successfully");
-      if (callback && typeof callback === 'function') {
-          callback(); // Call the callback function if provided
-      }
+    // Wait for all scripts to finish loading
+    await Promise.all(scripts);
+    console.log("All scripts loaded successfully");
+
+    // Call the callback function if provided
+    if (callback && typeof callback === 'function') {
+      callback();
+    }
   } catch (error) {
-      console.error("Error loading scripts:", error);
+    // Log any errors that occur during loading
+    console.error("Error loading scripts:", error);
   }
-}
+};
 
-function matrixPrint(matrix, m, n) {
-  var output = '';
-  // Split the single array into m rows
-  for (var i = 0; i < m; i++) {
-    output += matrix.slice(i * n, (i+1) * n).join(' ') + '\n';
-  }
-  out.innerText += output + '\n';
-}
 
-function printMatrix(matrix) {
-  let formattedString = '';
-  let consecutiveBrackets = 0;
-  let arrayString = JSON.stringify(matrix)
-
-  for (let i = 0; i < arrayString.length; i++) {
-      formattedString += arrayString[i];
-
-      if (arrayString[i] === ']') {
-          consecutiveBrackets++;
-      } else if (arrayString[i] === ',' && consecutiveBrackets > 0) {
-          formattedString += '\n'.repeat(consecutiveBrackets);
-          consecutiveBrackets = 0;
-      } else {
-          consecutiveBrackets = 0;
-      }
-  }
-
-  console.log(formattedString);
-}
 
 // Export functions for use in Node.js/CommonJS environments
 if (typeof module !== 'undefined' && module.exports) {
@@ -119,9 +146,6 @@ if (typeof module !== 'undefined' && module.exports) {
     proportionalRandint,
     instrLoader,
     shuffle,
-    loadScriptAsync,
-    loadScripts,
-    matrixPrint,
-    printMatrix
+    loadScripts
   };
 }
