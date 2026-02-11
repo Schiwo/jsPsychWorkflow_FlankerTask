@@ -23,18 +23,18 @@ function timelineBuilder() {
   const instructionsArray = createInstructions(expInfo);
 
   // --- Create trial lists ---
-  // These arrays will hold the condition levels (based on the counterbalancing parameter) for training and main trials for each block.
-  // this will be an array of arrays: each entry represents a block, which contains an array of trials, which contains an array of condition levels.
-  // e.g., trainingList = [[[block1_trial1_condition1_LevelX, block1_trial1_condition2_LevelX], [block1_trial2_condition1_LevelX, block1_trial2_condition2_LevelX], ...], ... ]
+  // These arrays will hold the factor levels (based on the counterbalancing parameter) for training and main trials for each block.
+  // this will be an array of arrays: each entry represents a block, which contains an array of trials, which contains an array of factor levels.
+  // e.g., trainingList = [[[block1_trial1_factor1_LevelX, block1_trial1_factor2_LevelX], [block1_trial2_factor1_LevelX, block1_trial2_factor2_LevelX], ...], ... ]
   var trainingList = [];
   var trialList = [];
 
-  // Fill the trainingList with condition levels for each trial in each training block
+  // Fill the trainingList with factor levels for each trial in each training block
   for (var i = 0; i < expInfo.trainingblocks; i++) {
     trainingList[i] = createTrialSequences(counterBalancingParameter);
   }
 
-  // Fill the trialList with condition levels for each trial in each main block
+  // Fill the trialList with factor levels for each trial in each main block
   for (var i = 0; i < expInfo.blocks; i++) {
     trialList[i] = createTrialSequences(counterBalancingParameter);
   }
