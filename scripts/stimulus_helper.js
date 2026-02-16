@@ -1,9 +1,3 @@
-/**
- * ======================================================================
- * Helper functions for handling feedback and accuracy logic
- * across different trial templates.
- * ======================================================================
- */
 
 /**
  * Checks whether the participant’s response is correct.

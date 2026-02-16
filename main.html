@@ -11,62 +11,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Experiment</title>
-  <!-- written on jsPsych Version 7.3.2 -->
+  <!-- written on jsPsych Version 8.2.3 -->
 
   <!-- ========== SECTION 1: LOAD STYLING (CSS) ========== -->
   <!-- CSS (Cascading Style Sheets) controls how things look on the page -->
-  <link href="https://unpkg.com/jspsych@7.3.2/css/jspsych.css" rel="stylesheet" type="text/css">
+  <link href="https://unpkg.com/jspsych@8.2.3/css/jspsych.css" rel="stylesheet" type="text/css">
   <!-- Above: Load the default jsPsych styling from the internet -->
   <link href="css/experimentStyle.css" rel="stylesheet" type="text/css">
   <!-- Above: Load our custom styling from the local css/ folder -->
   
 
   <!-- ========== SECTION 2: LOAD JSPSYCH LIBRARY ========== -->
-  <script src="https://unpkg.com/jspsych@7.3.2"></script>
+    <script src="https://unpkg.com/jspsych@8.2.3"></script>
 
   <!-- ========== SECTION 3: LOAD JSPSYCH PLUGINS ========== -->
   <!-- Plugins are add-ons to jsPsych that create specific types of experimental trials -->
   <!-- Each script below adds a different trial type to the experiment -->
-  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
   <!-- Above: Plugin for showing text/images and recording keyboard responses -->
-  <script src="https://unpkg.com/@jspsych/plugin-instructions@1.1.2"></script>
+   <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
+  <!-- Above: Plugin for showing text/images and recording button responses -->
+  <script src="https://unpkg.com/@jspsych/plugin-instructions@2.0.0"></script>
   <!-- Above: Plugin for displaying instructions to participants -->
-  <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-text@2.0.0"></script>
   <!-- Above: Plugin for text input surveys  -->
-  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@2.0.0"></script>
   <!-- Above: Plugin for form-based surveys with multiple question types -->
-  <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-call-function@2.0.0"></script>
   <!-- Above: Plugin for running custom JavaScript functions during the experiment -->
-  <script src="https://unpkg.com/@jspsych/plugin-browser-check@1.0.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-browser-check@2.0.0"></script>
   <!-- Above: Plugin for checking browser compatibility -->
-  <script src="https://unpkg.com/@jspsych/plugin-external-html@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-external-html@2.0.0"></script>
   <!-- Above: Plugin for loading external HTML files into the experiment -->
 
 
   <!-- ========== SECTION 4: LOAD EXTERNAL LIBRARIES ========== -->
   <!-- These are additional JavaScript libraries that provide useful functions -->
-  <script src="src/libraries/math/dist/math.js"></script>
+  <script src="https://unpkg.com/mathjs@13.2.0/lib/browser/math.js"></script>
   <!-- Above: Math library for mathematical operations -->
 
 
   <!-- ========== SECTION 5: LOAD WORKFLOW SCRIPTS ========== -->
   <!-- These scripts are custom files we created to define the experiment logic -->
-  <script src="scripts/baseFunctions.js"></script>
+  <script src="scripts/base_functions.js"></script>
   <!-- Above: Basic utility functions used throughout the experiment -->
-  <script>loadScripts("scripts/", ["counterbalancing", "stimulusHelper", "instructionsReader"])</script>
+  <script>loadScripts("scripts/", ["counterbalancing", "stimulus_helper", "instructions_reader"])</script>
   <!-- Above: Load multiple helper scripts from the scripts/ folder that handle:
        - counterbalancing: Assigning different stimulus orders to different participants
-       - stimulusHelper: Some reoccuring trial parts such as feedback.
-       - instructionsReader: Managing instruction text
-       - functionalTrials: Some special function "trials" (e.g. "Welcome to the experiment" or data storage) -->
+       - stimulus_helper: Some reoccuring trial parts such as feedback.
+       - instructions_reader: Managing instruction text
+       - functional_trials: Some special function "trials" (e.g. "Welcome to the experiment" or data storage) -->
 
   <!-- ========== SECTION 6: LOAD EXPERIMENT CONFIGURATION ========== -->
   <!-- These files contain settings, parameters and order for this specific experiment -->
-  <script>loadScripts("input/", ["timelineBuilder", "blockBuilder", "counterbalancing_parameter", "experiment_information", "functional_trials", "stimulus_constructor"])</script>
+  <script>loadScripts("input/", ["timeline_builder", "block_builder", "counterbalancing_parameter", "experiment_information", "functional_trials", "stimulus_constructor"])</script>
   <!-- Above: Load configuration files that define:
-       - timelineBuilder: Organizes all trials in the correct order
-       - blockBuilder: Defines the creation of trial blocks.
-       - counterbalancing_rules: Rules for how to vary the conditions within participants.
+       - timeline_builder: Organizes all trials in the correct order
+       - block_builder: Defines the creation of trial blocks.
+       - counterbalancing_parameter: Parameters for counterbalancing.
        - experiment_information: General experiment settings (used keys, durations etc.).
        - stimulus_constructor: Translates trial conditions into the visual appearance of the stimulus. -->
 

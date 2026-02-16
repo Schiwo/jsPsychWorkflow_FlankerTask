@@ -33,13 +33,11 @@ function createFunctionalTrials(expInfo) {
                     console.log("Try Nr: " + retry);
 
                     // Warn the participant if this is not the first try
-                    if (retry > 0) {
-                        alert("No internet connection!\nCheck connection and press OK!");
-                    } 
-                    // Stop retrying after too many failed attempts
-                    else if (retry > 5) {
+                    if (retry > 5) {
                         alert("Data storage failed!");
                         return;
+                    } else if (retry > 0) {
+                        alert("No internet connection!\nCheck connection and press OK!");
                     }
 
                     // Attempt to submit the data to JATOS
@@ -59,6 +57,31 @@ function createFunctionalTrials(expInfo) {
                 // Notify jsPsych that this asynchronous trial is complete
                 done();
             }
+        },
+
+        /**
+         * Presents the informed consent form to the participant.
+         * Participants must click a button to consent and continue, or decline.
+         * If consent is declined, the experiment is immediately aborted.
+         */
+        informedConsent: {
+            type: jsPsychHtmlButtonResponse,
+            // Display consent form text with instructions
+            stimulus:
+                "<p>Please read the informed consent information below.</p>" +
+
+                "<p>ADD YOUR CONSENT FORM HERE</p>" +
+
+                "<p>Click a button below to consent or decline.</p>",
+            // Restrict valid responses to button clicks (0 = Yes, 1 = No)
+            choices: ["Yes, I consent", "No, I decline"],
+            // Process the participant's response after the trial completes
+            on_finish: (data) => {
+                // If the user clicks button 1 (No), stop the study
+                if (data.response === 1) {
+                    jsPsych.abortExperiment("Participant did not consent.");
+                }
+            },
         },
 
         /**
