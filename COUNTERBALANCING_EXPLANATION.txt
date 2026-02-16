@@ -1,0 +1,377 @@
+================================================================================
+COUNTERBALANCING.JS - COMPREHENSIVE EXPLANATION
+================================================================================
+
+OVERVIEW
+--------
+counterbalancing.js is a JavaScript module that generates counterbalanced trial 
+sequences for behavioral experiments. Counterbalancing is a technique that 
+controls for order effects by systematically varying the presentation order of 
+experimental conditions.
+
+The module uses matrix-based algorithms (powered by math.js) to generate sequences 
+that meet specified constraints while maintaining balanced proportions of 
+conditions across factors.
+
+
+CORE CONCEPTS
+-------------
+
+1. FACTORS AND LEVELS
+   - Factors are experimental variables (e.g., stimulus type, difficulty)
+   - Each factor has multiple levels (e.g., easy/medium/hard = 3 levels)
+   - Example: factors = [2, 3, 4] means:
+     * Factor 1: 2 levels
+     * Factor 2: 3 levels  
+     * Factor 3: 4 levels
+     * Total combinations: 2 × 3 × 4 = 24 possible trials
+
+2. FACTOR PROPORTIONS
+   - Controls how many times each level appears
+   - Can be equal ([1, 1, 1]) or unequal ([2, 1, 1])
+   - Combined with 'sets' parameter to create the pool of trials
+   - Example: proportions [2, 1] for a factor means level 0 appears twice as often
+
+3. TRANSITION RULES
+   - Rules that constrain what combinations can follow others
+   - Four rule types:
+     * "identical" - same level as N trials back
+     * "different" - different from N trials back
+     * "next" - next level (with wraparound)
+     * null - no constraint
+
+4. SETS
+   - The number of complete repetitions of the balanced design
+   - Higher sets = more trials total
+   - Total trials = sets × (product of all factor levels × proportions)
+
+
+MAIN FUNCTIONS
+--------------
+
+PRIMARY API (User-facing):
+--------------------------
+
+1. createTrialSequences(counterBalancingParameter)
+   Purpose: Generate complete trial sequence with prepended, main, and appended trials
+   Input:   Configuration object with all parameters
+   Output:  Array of trial combinations
+   
+   Example usage:
+   var sequence = createTrialSequences({
+     factors: [2, 3],
+     factorProportions: [null, [1, 2, 1]],
+     transitionRules: [null, ["identical", 1, 0]],
+     sets: 2,
+     preprendTrials: 2,
+     prependRules: [null, null],
+     appendTrials: 2,
+     appendRules: [null, null],
+     DEBUG_MODE: true
+   });
+
+2. counterbalance(counterBalancingParameter)
+   Purpose: Generate the main counterbalanced sequence
+   Input:   Configuration object
+   Output:  Array of trial combinations
+   Notes:   This is the core algorithm function
+
+3. prepend(rawList, counterBalancingParameter)
+   Purpose: Add trials to the beginning of a sequence
+   Input:   Existing trial list and prepend configuration
+   Output:  Extended trial list
+   Notes:   Useful for practice trials with specific constraints
+
+4. append(rawList, counterBalancingParameter)
+   Purpose: Add trials to the end of a sequence
+   Input:   Existing trial list and append configuration
+   Output:  Extended trial list
+   Notes:   Useful for cleanup/buffer trials
+
+
+COUNTERBALANCING ALGORITHM (How It Works)
+------------------------------------------
+
+The counterbalance() function uses a constraint satisfaction algorithm:
+
+STEP 1: INITIALIZATION
+   - Creates a "pool" matrix with dimensions matching the factors
+   - Applies factor proportions to determine how many times each 
+     combination appears in the base pool
+   - Multiplies by 'sets' parameter to get total trial count
+
+STEP 2: SEED SELECTION
+   - Randomly picks the first trial from available options weighted 
+     by proportions
+   - This seed is special: it must lead to a solveable solution
+   - If stuck, picks a new seed and restarts
+
+STEP 3: ITERATIVE TRIAL SELECTION
+   For each subsequent trial:
+   a) Check if a valid solution exists (solveable())
+      - Examines transition rules to determine valid next options
+      - Checks if any valid options remain in the pool
+      
+   b) If solveable, pick a valid trial (picker())
+      - Translates rules into valid factor combinations
+      - Randomly selects from valid options (weighted by proportions)
+      
+   c) Update the pool
+      - Subtracts 1 from the selected combination in the pool
+      - Ensures combinations are selected proportionally
+
+   d) If not solveable, restart
+      - If too many failed attempts in a row, pick new seed
+      - Rebuilds pool and tries again
+      - Has limits: MAX_RETRY_ATTEMPTS (25), MAX_RESTART_ATTEMPTS (15)
+
+STEP 4: ERROR HANDLING
+   - Throws detailed error if no solution found
+   - Reports which trial failed and why
+   - Shows pool state for debugging
+
+
+DEBUGGING FEATURES
+------------------
+
+When DEBUG_MODE is set to true, the function logs:
+
+- debugLog(message)
+  General debug messages about algorithm progress
+  
+- debugPoolState(pool, label)
+  Current remaining trial count in pool
+  
+- debugPickedConditions(trialNum, conditions)
+  Which combination was picked for each trial
+  
+- formatPoolState(pool)
+  Complete formatted view of all remaining trials in pool
+  
+Enable debugging to understand:
+- How many trials remain after each selection
+- Which combinations are being picked
+- When and why algorithm restarts
+- Final pool state before success/failure
+
+
+EXAMPLE CONFIGURATION
+---------------------
+
+// Flanker task with congruent/incongruent and 3 difficulty levels
+var config = {
+  factors: [2, 2, 3],  // 2 previous congruency x 2 current congruency × 3 difficulty = 6 basic trials
+  factorProportions: [[1, 1], [1, 1], [2, 1, 1]],  // Equal previous congruency, Equal current congruency, 2:1:1 difficulty
+  transitionRules: [
+    ["identical", 1, 1],  // Factor 0: previous congruency must be identical as factor 1: current congruency in previous trial (-1)
+    null                   // Factor 1: no constraint
+    null                   // Factor 2: no constraint
+  ],
+  sets: 4,  // Repeat the design 4 times
+  preprendTrials: 1,      // Add 1 trial to validate the previous congruency rules (since trial 0 has no previous trial but specifies previous trial congruency)
+  prependRules: [null, null],  // No constraints on practice trials
+  appendTrials: 0,        // No cleanup trials
+  appendRules: [null, null],
+  DEBUG_MODE: false       // Set to true for detailed logging
+};
+
+var trialSequence = createTrialSequences(config);
+
+
+RULE SPECIFICATION REFERENCE
+-----------------------------
+
+Format: [ruleType, ...parameters]
+
+1. null (No Rule)
+   Means: Factor can be any level
+   Example: null
+
+2. Identical Rule
+   Format: ["identical", x, y]
+   Meaning: Factor must be same as it was x trials ago
+   x: number of trials back (must be >= 1)
+   y: which position in the factor tuple to reference (usually 0)
+   Example: ["identical", 1, 0] - match previous trial's level
+
+3. Different Rule
+   Format: ["different", x, y]
+   Meaning: Factor must be different from x trials ago
+   x: number of trials back
+   y: which position in the factor tuple to reference
+   Example: ["different", 2, 0] - avoid repeating level from 2 trials back
+
+4. Next Rule
+   Format: ["next", n]
+   Meaning: Factor cycles through levels incrementally
+   n: increment amount (wraps around)
+   Example: ["next", 1] - each trial goes to next level (0→1→2→0→...)
+
+5. Multiple Rules (Complex Examples)
+   Can combine rules across factors:
+   [["identical", 1, 0], ["different", 2, 0], null]
+   Factor 0: same as previous
+   Factor 1: different from 2 trials back
+   Factor 2: no constraint
+
+
+OUTPUT STRUCTURE
+----------------
+
+The functions return an array of trial combinations.
+Each element is an array of indices, one per factor.
+
+Example return value:
+[
+  [0, 1, 2],  // Trial 0: factor0=level0, factor1=level1, factor2=level2
+  [1, 0, 1],  // Trial 1: factor0=level1, factor1=level0, factor2=level1
+  [0, 2, 0],  // Trial 2: factor0=level0, factor1=level2, factor2=level0
+  ...
+]
+
+To use in experiment:
+- Map indices to actual stimuli/parameters
+- Use as reference to build trial objects
+- Pass to jsPsych timeline
+
+
+EDGE CASES & TROUBLESHOOTING
+-----------------------------
+
+Problem: "Can't find a solution for the specified factors"
+Causes:
+- Transition rules are too restrictive
+- Factor proportions incompatible with rules
+- Not enough sets to satisfy constraints
+
+Solution: Relax rules, adjust proportions, or increase sets
+
+Problem: Algorithm takes too long or restarts frequently
+Causes:
+- Rules are overly constrained
+- Bad seed choices require many restarts
+
+Solution: Increase MAX_RETRY_ATTEMPTS/MAX_RESTART_ATTEMPTS or simplify rules
+
+Problem: Pool state shows negative numbers
+Causes: Should not happen - indicates a bug
+Solution: File a bug report with DEBUG_MODE output
+
+
+TECHNICAL NOTES
+---------------
+
+- Uses math.js for matrix operations (multidimensional arrays)
+- Works in both browser and Node.js environments
+- Dependencies loaded with try/catch for flexibility
+- All exported functions are available in module.exports
+- Global variables set by counterbalance() function
+- No side effects outside the function scope
+
+
+DEPENDENCIES
+------------
+
+1. math.js - Required for matrix operations
+   Functions used: ones, multiply, subset, index, sum, clone
+
+2. baseFunctions.js - Required for utility functions
+   Functions used: deepCopy, randint, proportionalRandint
+
+
+CUSTOM TRANSITION RULES
+-----------------------
+
+In addition to built-in rules, you can define custom rule functions for complete
+control over trial transitions.
+
+CUSTOM RULE FUNCTION SIGNATURE:
+function customRule(numLevels, currentIndex, previousTrials) {
+  // numLevels: Number of levels available for this factor
+  // currentIndex: Current trial index (0-indexed)
+  // previousTrials: Array of all previously selected trial combinations
+  
+  // Return either:
+  // - An array of valid level indices (e.g., [0, 1, 2])
+  // - A single level index (e.g., 0 for only level 0)
+}
+
+EXAMPLE 1: ABBAABBAA Pattern
+Creates a repeating pattern where each level repeats twice:
+
+function customABBAPattern(numLevels, currentIndex, previousTrials) {
+    const pattern = [0, 0, 1, 1, 0, 0, 1, 1, 0];
+    const cycleLength = pattern.length;
+    const levelIndex = pattern[currentIndex % cycleLength];
+    return levelIndex;  // Returns single value
+}
+
+Use in transitionRules:
+transitionRules: [customABBAPattern, null, ["next", 1], null]
+
+EXAMPLE 2: Simple Alternating (ABABAB...)
+Alternates between two levels:
+
+function customAlternating(numLevels, currentIndex, previousTrials) {
+    if (previousTrials.length === 0) {
+        return 0;  // Start with level 0
+    }
+    const lastLevel = previousTrials[previousTrials.length - 1][0];
+    return lastLevel === 0 ? 1 : 0;  // Toggle between 0 and 1
+}
+
+EXAMPLE 3: Avoid Recent Repetition
+Returns array of levels that haven't been used in last 2 trials:
+
+function customAvoidRepeat(numLevels, currentIndex, previousTrials) {
+    if (previousTrials.length < 2) {
+        return Array.from(Array(numLevels).keys());
+    }
+    const lastTwo = [
+        previousTrials[previousTrials.length - 1][0],
+        previousTrials[previousTrials.length - 2][0]
+    ];
+    const availableLevels = [];
+    for (let i = 0; i < numLevels; i++) {
+        if (!lastTwo.includes(i)) {
+            availableLevels.push(i);
+        }
+    }
+    return availableLevels.length > 0 ? availableLevels : 
+           Array.from(Array(numLevels).keys());  // Returns array of options
+}
+
+MIXING CUSTOM AND STANDARD RULES:
+transitionRules: [
+    customABBAPattern,      // Custom function
+    ["identical", 1, 0],    // Standard rule
+    null,                   // No rule
+    customAlternating       // Another custom function
+]
+
+CUSTOM RULES WITH PREPEND/APPEND:
+Custom rules work identically with prependRules and appendRules:
+
+let config = {
+    factors: [2, 2],
+    transitionRules: [null, null],
+    preprendTrials: 2,
+    prependRules: [customABBAPattern, null],   // Custom rule for practice
+    appendTrials: 2,
+    appendRules: [customAlternating, null],    // Custom rule for buffer
+    ...
+}
+
+
+PERFORMANCE CONSIDERATIONS
+---------------------------
+
+- Algorithm complexity depends on constraint tightness
+- More factors = larger matrices = slower computation
+- More sets = more iterations needed
+- Complex rules increase search space
+- Typical performance: thousands of trials in <1 second
+- For very large designs, consider simplifying rules
+
+
+================================================================================

@@ -1,4 +1,4 @@
-function stimulusConstructor(expInfo, trialPart, list, trialNr, blockNr, training) {
+function stimulusConstructor(expInfo, trialPart, list, trialNr, blockNr, training=false) {
   if (list) {  
     currentCongruency = list[trialNr][0];
     prevCongruency = list[trialNr][1];

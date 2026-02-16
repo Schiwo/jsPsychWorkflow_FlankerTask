@@ -1,0 +1,20 @@
+# Node.js dependencies
+node_modules/
+package-lock.json
+
+# Node.js/Jest configuration
+jest.config.js
+package.json
+
+# Test files
+tests/
+
+# Node.js cache
+.npm
+.node_repl_history
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
