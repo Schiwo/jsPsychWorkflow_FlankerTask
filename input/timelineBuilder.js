@@ -14,7 +14,8 @@
 function timelineBuilder() {
 
   // Get information about the experiment (like number of blocks, used keys, etc.). See further in expInfo.js
-  const expInfo = createExpInfo();
+  // This object should be globally available, as it contains all the settings that are used across the different files.
+  expInfo = createExpInfo();
   // Set up counterbalancing (to make sure conditions are shown in a balanced way). See further in counterbalancing_parameter.js
   const counterBalancingParameter = createCounterBalancingParameter();
   // Create the different types of trials with standard functions (eg welcoming to the experiment, asking for age and gender, etc). See further in functionalTrials.js

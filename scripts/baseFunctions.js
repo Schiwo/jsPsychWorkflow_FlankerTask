@@ -103,6 +103,33 @@ function shuffle(a) {
 
 
 /**
+ * Loads a single JavaScript file asynchronously.
+ *
+ * @param {String} path - Full path to the script file
+ * @returns {Promise} A promise that resolves when the script loads or rejects on error
+ */
+function loadScriptAsync(path) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = path;
+    script.type = 'text/javascript';
+
+    // Resolve the promise when the script loads successfully
+    script.onload = () => {
+      resolve();
+    };
+
+    // Reject the promise if the script fails to load
+    script.onerror = () => {
+      reject(new Error(`Failed to load script: ${path}`));
+    };
+
+    // Append the script to the document
+    document.head.appendChild(script);
+  });
+}
+
+/**
  * Loads multiple JavaScript files asynchronously and optionally runs a callback
  * after all scripts have been successfully loaded.
  *
@@ -146,6 +173,7 @@ if (typeof module !== 'undefined' && module.exports) {
     proportionalRandint,
     instrLoader,
     shuffle,
+    loadScriptAsync,
     loadScripts
   };
 }

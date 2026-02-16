@@ -88,11 +88,19 @@
     // {  "skimMode": true, "skipToMain": true }
     var skimMode = false;
     var skipToMain = false;
+    var expInfo; // Global variable to hold experiment configuration
     
     // ========== INITIALIZE JSPSYCH AND TIMELINE ==========   
 
-    var jsPsych = initJsPsych();
+    var jsPsych = initJsPsych( 
+      { 
+        on_finish: () =>{
+          jatos.endStudy();
+        }
+      }
+    );
     // Above: Create the main jsPsych object that will control the entire experiment
+    // The on_finish function tells jsPsych to call jatos.endStudy() when the experiment is finished, which will save the data and end the session in JATOS.
     
     var experimentTimeline = [];
     // Above: This array will hold all the trials and blocks that make up the experiment

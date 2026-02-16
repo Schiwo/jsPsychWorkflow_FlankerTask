@@ -101,9 +101,8 @@ function createFunctionalTrials(expInfo) {
         exit: {
             type: jsPsychHtmlKeyboardResponse,
             stimulus: `The experiment is finished now. Thank you for your participation!
-                       Press "${expInfo.instrKeyForward}" to read something about the background
-                       of the experiment or press "${expInfo.instrKeyBackward}" to be forwarded!`,
-            choices: [expInfo.instrKeyForward, expInfo.instrKeyBackward]
+                       Press "${expInfo.instrKeyForward}" to be forwarded!`,
+            choices: [expInfo.instrKeyForward]
         },
 
         /**
