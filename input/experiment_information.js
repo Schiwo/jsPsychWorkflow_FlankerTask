@@ -43,7 +43,7 @@ function createExpInfo() {
         keys : [["3","4"], ["5","6"]],    // Response keys corresponding to stimuli
 
         // Block settings
-        blocks : 1,           // Number of main experiment blocks
+        blocks : 3,           // Number of main experiment blocks
         trainingblocks : 2,   // Number of training blocks
 
         // Timing parameters (in milliseconds)

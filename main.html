@@ -13,7 +13,7 @@
   <title>Experiment</title>
   <!-- written on jsPsych Version 8.2.3 -->
 
-  <!-- ========== SECTION 1: LOAD STYLING (CSS) ========== -->
+  <!-- ========== LOAD STYLING (CSS) ========== -->
   <!-- CSS (Cascading Style Sheets) controls how things look on the page -->
   <link href="https://unpkg.com/jspsych@8.2.3/css/jspsych.css" rel="stylesheet" type="text/css">
   <!-- Above: Load the default jsPsych styling from the internet -->
@@ -21,10 +21,10 @@
   <!-- Above: Load our custom styling from the local css/ folder -->
   
 
-  <!-- ========== SECTION 2: LOAD JSPSYCH LIBRARY ========== -->
+  <!-- ========== LOAD JSPSYCH LIBRARY ========== -->
     <script src="https://unpkg.com/jspsych@8.2.3"></script>
 
-  <!-- ========== SECTION 3: LOAD JSPSYCH PLUGINS ========== -->
+  <!-- ========== LOAD JSPSYCH PLUGINS ========== -->
   <!-- Plugins are add-ons to jsPsych that create specific types of experimental trials -->
   <!-- Each script below adds a different trial type to the experiment -->
   <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
@@ -45,13 +45,13 @@
   <!-- Above: Plugin for loading external HTML files into the experiment -->
 
 
-  <!-- ========== SECTION 4: LOAD EXTERNAL LIBRARIES ========== -->
+  <!-- ========== LOAD EXTERNAL LIBRARIES ========== -->
   <!-- These are additional JavaScript libraries that provide useful functions -->
   <script src="https://unpkg.com/mathjs@13.2.0/lib/browser/math.js"></script>
   <!-- Above: Math library for mathematical operations -->
 
 
-  <!-- ========== SECTION 5: LOAD WORKFLOW SCRIPTS ========== -->
+  <!-- ========== LOAD SCRIPTS ========== -->
   <!-- These scripts are custom files we created to define the experiment logic -->
   <script src="scripts/base_functions.js"></script>
   <!-- Above: Basic utility functions used throughout the experiment -->
@@ -59,20 +59,20 @@
   <!-- Above: Load multiple helper scripts from the scripts/ folder that handle:
        - counterbalancing: Assigning different stimulus orders to different participants
        - stimulus_helper: Some reoccuring trial parts such as feedback.
-       - instructions_reader: Managing instruction text
+       - instructions_reader: Managing instructions
        - functional_trials: Some special function "trials" (e.g. "Welcome to the experiment" or data storage) -->
 
-  <!-- ========== SECTION 6: LOAD EXPERIMENT CONFIGURATION ========== -->
+  <!-- ========== LOAD CONFIGURATED SCRIPTS ========== -->
   <!-- These files contain settings, parameters and order for this specific experiment -->
   <script>loadScripts("input/", ["timeline_builder", "block_builder", "counterbalancing_parameter", "experiment_information", "functional_trials", "stimulus_constructor"])</script>
   <!-- Above: Load configuration files that define:
        - timeline_builder: Organizes all trials in the correct order
-       - block_builder: Defines the creation of trial blocks.
+       - block_builder: Defines the creation of trial blocks, the experiment start and end.
        - counterbalancing_parameter: Parameters for counterbalancing.
        - experiment_information: General experiment settings (used keys, durations etc.).
        - stimulus_constructor: Translates trial conditions into the visual appearance of the stimulus. -->
 
-  <!-- ========== SECTION 7: LOAD JATOS ========== -->
+  <!-- ========== LOAD JATOS ========== -->
   <!-- JATOS (Just Another Tool for Online Studies) is the platform running this experiment -->
   <!-- It handles participant links, data collection, and storage -->
   <script src="jatos.js"></script>
@@ -108,7 +108,8 @@
     // Above: This array will hold all the trials and blocks that make up the experiment
     
     
-    // ========== START THE EXPERIMENT ==========
+    // ========== a. Initialize jsPsych and create the timeline structure.  ==========   
+    
     // jatos.onLoad() waits for JATOS to fully load before running this code
     jatos.onLoad(() => {
       // Read flags from JATOS componentInput
