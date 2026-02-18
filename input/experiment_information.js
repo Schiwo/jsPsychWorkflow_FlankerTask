@@ -30,7 +30,7 @@ function createExpInfo() {
         fdbColorIncorrect : "#b30000", // Color for incorrect feedback
 
         // Token for URL return (used for participant identification or session tracking)
-        token : "17C41AFF",
+        token : "TEST123",
 
         // Structure of trials for training and main experiment
         trialStructures: {
