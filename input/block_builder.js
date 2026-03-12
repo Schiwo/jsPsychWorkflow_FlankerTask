@@ -64,6 +64,8 @@ function buildExperimentStart(timeline, functionalTrials) {
     timeline.push(functionalTrials.browserCheck);
     // Display welcome message to the participant.
     timeline.push(functionalTrials.welcome);
+	// Display informed consent for the experiment.
+    timeline.push(functionalTrials.informedConsent);
     // Ask the participant for their age and gender information.
     timeline.push(functionalTrials.ageGender);
   }
