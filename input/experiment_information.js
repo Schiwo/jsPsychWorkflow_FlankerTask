@@ -86,12 +86,6 @@ function createExpInfo() {
                 file: "Folie",
                 format: ".JPG",
                 length: 1
-            },
-            expInformation: {
-                folder: "expInformation",
-                file: "Folie",
-                format: ".JPG",
-                length: 1
             }
         }
     }
