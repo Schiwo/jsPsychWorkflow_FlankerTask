@@ -4,7 +4,7 @@ This repository provides a jsPsych workflow template for a Flanker Task that is 
 
 The core idea is to keep:
 - **experiment-specific configuration** (what to show, how to balance, how to order blocks)
-- separate from
+separate from
 - **generic implementation logic** (how balancing works, how timelines are built, how data is saved)
 
 This separation improves transparency, promotes code reuse, and reduces error-proneness when adapting the framework to new paradigms.
@@ -42,7 +42,7 @@ Because logic and configuration are separated, creating a new experiment typical
 
 ## JATOS Integration and Data Handling
 
-This project is configured for deployment in **JATOS** (Just Another Tool for Online Studies).
+This project is configured for deployment in **[JATOS](https://www.jatos.org/)** (Just Another Tool for Online Studies).
 
 - `main.html` loads `jatos.js` and starts the experiment in `jatos.onLoad(...)`.
 - Data are collected through jsPsych and submitted to the server in CSV format via `jatos.submitResultData(...)` (implemented in `input/functional_trials.js`).
