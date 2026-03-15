@@ -59,7 +59,7 @@ To run this experiment locally, you need a local JATOS installation.
 
 ### Option 1: Import a ready-made study package
 
-1. Download the zipped JATOS study package for this project.
+1. Download the zipped JATOS study package for this project: [jspsychworkflow_flankertask.jzip](https://github.com/Schiwo/jsPsychWorkflow_FlankerTask/releases/download/v1.0.0/jspsychworkflow_flankertask.jzip).
 2. In JATOS, use **Import study**.
 3. Select the downloaded zip file and complete the import.
 4. Open the imported study and run it.
